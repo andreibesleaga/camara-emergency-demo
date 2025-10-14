@@ -1,0 +1,9 @@
+export type LatLng = { lat: number; lon: number };
+export type DeviceLocation = { deviceId: string; location: LatLng; accuracyMeters: number; timestamp: string; source: 'network' | 'gps' };
+export type Polygon = { coordinates: [number, number][] }; // [lon, lat]
+export type DensityPoint = { lat: number; lon: number; count: number };
+export type DensitySnapshot = { areaId: string; timestamp: string; totalDevices: number; points: DensityPoint[] };
+export type FlowSeries = { areaId: string; intervalMinutes: number; series: { timestamp: string; totalDevices: number }[] };
+export type GeofenceRule = { id: string; name: string; polygon: Polygon; thresholdDevices: number; alertChannels: ('ui' | 'webhook')[]; webhookUrl?: string; active: boolean };
+export type AlertEvent = { ruleId: string; triggeredAt: string; totalDevices: number; level: 'info' | 'warning' | 'critical'; message: string };
+export type RoutePlan = { from: LatLng; to: LatLng; waypoints?: LatLng[]; path: LatLng[]; etaMinutes: number; advisories: string[] };

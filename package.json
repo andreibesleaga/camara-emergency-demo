@@ -1,0 +1,46 @@
+{
+  "name": "camara-emergency-demo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "build:backend": "cd backend && tsc",
+    "build:full": "npm run build:frontend && npm run build:backend",
+    "start": "node backend/dist/server.js",
+    "dev": "concurrently \"cd backend && ts-node-dev --respawn --transpile-only server.ts\" \"cd frontend && vite\""
+  },
+  "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "axios": "^1.12.2",
+    "camara-mcp": "^0.2.1",
+    "camara-sdk": "^0.2.1",
+    "chart.js": "^4.5.0",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "leaflet-draw": "^1.0.4",
+    "ngeohash": "^0.6.3",
+    "node-schedule": "^2.1.1",
+    "react-chartjs-2": "^5.3.0",
+    "uuid": "^9.0.1",
+    "winston": "^3.18.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/leaflet-draw": "^1.0.13",
+    "@types/ngeohash": "^0.6.8",
+    "@types/node": "^20.19.21",
+    "@types/node-schedule": "^2.1.8",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "@types/uuid": "^10.0.0",
+    "@types/winston": "^2.4.4",
+    "@vitejs/plugin-react": "^5.0.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}

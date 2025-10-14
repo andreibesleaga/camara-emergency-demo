@@ -1,0 +1,7 @@
+html, body, #root { height: 100%; margin: 0; }
+.layout { display: grid; grid-template-columns: 360px auto; height: 100%; }
+.sidebar { padding: 12px; border-right: 1px solid #ddd; overflow-y: auto; }
+.map { height: 100%; }
+.sidebar input, .sidebar textarea { width: 100%; margin: 4px 0; }
+.sidebar button { margin: 4px 4px 4px 0; }
+.footer { margin-top: 16px; color: #666; }
