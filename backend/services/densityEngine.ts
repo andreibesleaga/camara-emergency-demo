@@ -1,8 +1,9 @@
 import ngeohash from 'ngeohash';
 import { DensitySnapshot, FlowSeries, Polygon } from '../models/types';
+import { Point, AreaType } from '../models/camara-common';
 import { mockDensitySnapshot, mockFlowSeries } from './mockGenerator';
 import { loadConfig } from '../utils/config';
-import { ensureClosedPolygon } from '../utils/geometry';
+import { ensureClosedPolygon, createRectangle } from '../utils/geometry';
 import { createCamaraClient } from './camaraIntegration';
 
 const cfg = loadConfig();
@@ -25,8 +26,16 @@ type DensityPointRecord = {
   count: number;
 };
 
-function polygonToBoundary(polygon: Polygon) {
-  return polygon.coordinates.map(([lon, lat]) => ({ latitude: lat, longitude: lon }));
+/**
+ * Convert CAMARA Polygon boundary to CAMARA SDK format
+ * Input: Polygon with boundary array of Points
+ * Output: Array of { latitude, longitude } objects for SDK
+ */
+function polygonToBoundary(polygon: Polygon): Array<{ latitude: number; longitude: number }> {
+  return polygon.boundary.map((point) => ({
+    latitude: point.latitude,
+    longitude: point.longitude,
+  }));
 }
 
 function decodeCell(cell: CamaraDensityCell) {
@@ -68,7 +77,7 @@ export async function getDensitySnapshot(areaId: string, polygon: Polygon): Prom
   const startTime = new Date(endTime.getTime() - FLOW_INTERVAL_MINUTES * 60 * 1000);
 
   const response = await client.populationdensitydata.retrieve({
-    area: { areaType: 'POLYGON', boundary },
+    area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
     precision: selectPrecision(),
@@ -114,20 +123,13 @@ export async function getFlowSeries(areaId: string): Promise<FlowSeries> {
   const hoursBack = Number(process.env.CAMARA_POPULATION_DENSITY_FLOW_HOURS ?? '6');
   const startTime = new Date(now.getTime() - hoursBack * FLOW_INTERVAL_MINUTES * 60 * 1000);
 
-  const cachedPolygon = polygonCache.get(areaId) ?? ensureClosedPolygon({
-    coordinates: [
-      [26.08, 44.41],
-      [26.12, 44.41],
-      [26.12, 44.44],
-      [26.08, 44.44],
-      [26.08, 44.41],
-    ],
-  });
+  // Use cached polygon or create a default CAMARA Polygon for Bucharest
+  const cachedPolygon = polygonCache.get(areaId) ?? createRectangle(44.41, 26.08, 44.44, 26.12);
 
   const boundary = polygonToBoundary(cachedPolygon);
 
   const response = await client.populationdensitydata.retrieve({
-    area: { areaType: 'POLYGON', boundary },
+    area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
     endTime: now.toISOString(),
     precision: selectPrecision(),

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { geofenceSchema } from '../models/validators';
 import { addRule, listRules, deleteRule, subscribeAlerts } from '../services/alertEngine';
+import { legacyPolygonToCamara } from '../utils/geometry';
+import { AreaType } from '../models/camara-common';
 
 const router = Router();
 
@@ -9,7 +11,18 @@ router.get('/rules', (_req, res) => res.json(listRules()));
 router.post('/rules', (req, res) => {
   const parse = geofenceSchema.safeParse(req.body);
   if (!parse.success) return res.status(400).json({ error: 'Invalid rule', details: parse.error.flatten() });
-  const rule = addRule(parse.data);
+  
+  let ruleData = parse.data;
+  
+  // Convert legacy polygon format to CAMARA format if needed
+  if ('coordinates' in ruleData.polygon) {
+    ruleData = {
+      ...ruleData,
+      polygon: legacyPolygonToCamara(ruleData.polygon as any)
+    };
+  }
+  
+  const rule = addRule(ruleData as any);
   res.json(rule);
 });
 

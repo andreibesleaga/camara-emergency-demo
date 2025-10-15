@@ -19,7 +19,9 @@ export function mockDeviceLocation(deviceId: string): DeviceLocation {
 
 export function mockDensitySnapshot(areaId: string, polygon: Polygon): DensitySnapshot {
   const safePoly = ensureClosedPolygon(polygon);
-  const bbox = turf.bbox(turf.polygon([safePoly.coordinates]));
+  // Convert CAMARA Polygon boundary to turf-compatible format
+  const coords = safePoly.boundary.map(p => [p.longitude, p.latitude]);
+  const bbox = turf.bbox(turf.polygon([coords]));
   const [minX, minY, maxX, maxY] = bbox;
   const points: { lat: number; lon: number; count: number }[] = [];
   const totalPoints = 200;
