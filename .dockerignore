@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+backend/dist/
+frontend/dist/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Development files
+.git/
+.github/
+.vscode/
+*.md
+!README.md
+
+# Test files
+coverage/
+*.test.ts
+*.test.js
+__tests__/
+
+# Documentation (except README)
+docs/
+*.md
+!README.md
+
+# Misc
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+.tmp/
+temp/
+tmp/
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Railway specific (keep railway.json)
+# (nothing to exclude)
+
+# Security verification script
+verify-security.sh

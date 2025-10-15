@@ -4,7 +4,7 @@ COPY package.json ./
 RUN npm install
 COPY frontend ./frontend
 COPY backend ./backend
-COPY tsconfig.json vite.config.ts ./
+COPY tsconfig.json vite.config.js ./
 RUN npm run build:full
 
 FROM node:20-alpine
