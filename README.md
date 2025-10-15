@@ -89,3 +89,35 @@ This demo follows [CAMARA API Design Guidelines](https://github.com/camaraprojec
 - OAuth2 client_credentials flow with OpenID Connect discovery
 - x-correlator header support for request traceability
 - Proper resource naming matching camara-sdk conventions
+- **Comprehensive security features** (rate limiting, helmet headers, CORS, sanitization)
+
+## Security Features
+
+This application includes production-ready security features that are fully configurable:
+
+- **Rate Limiting** - Protects against API abuse (100 requests/15min default)
+- **Helmet Security Headers** - Sets secure HTTP headers (CSP, HSTS, etc.)
+- **CORS** - Configurable cross-origin resource sharing
+- **NoSQL Injection Protection** - Sanitizes request data
+- **HPP Protection** - Prevents HTTP parameter pollution
+- **Response Compression** - Reduces bandwidth usage
+- **Body Size Limits** - Prevents DoS attacks
+- **Trust Proxy** - Accurate IP detection behind load balancers
+
+**Quick Start:**
+```bash
+# Development (permissive)
+SECURITY_RATE_LIMIT_ENABLED=false
+SECURITY_CORS_ORIGINS=*
+
+# Production (strict)
+SECURITY_RATE_LIMIT_ENABLED=true
+SECURITY_CORS_ORIGINS=https://yourdomain.com
+SECURITY_TRUST_PROXY=true
+```
+
+**Documentation:**
+- Configuration: [`.env.example`](./.env.example) (see Security Configuration section)
+
+All security features are enabled by default with safe settings and can be customized via environment variables.
+

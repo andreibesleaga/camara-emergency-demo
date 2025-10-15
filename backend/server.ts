@@ -1,9 +1,10 @@
 import express from 'express';
 import path from 'path';
-import cors from 'cors';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { loadConfig } from './utils/config';
+import { loadSecurityConfig } from './config/security';
+import { applySecurityMiddleware } from './middleware/security';
 import { CamaraError } from './models/errors';
 import locationRouter from './routes/location';
 import densityRouter from './routes/density';
@@ -13,10 +14,16 @@ import mcpRouter from './routes/mcp';
 
 dotenv.config();
 const cfg = loadConfig();
+const securityCfg = loadSecurityConfig();
 
 const app = express();
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+
+// Apply security middleware (helmet, rate limiting, CORS, sanitization, compression)
+applySecurityMiddleware(app, securityCfg);
+
+// Body parser with configured limits
+app.use(express.json({ limit: securityCfg.bodyLimits.json }));
+app.use(express.urlencoded({ extended: true, limit: securityCfg.bodyLimits.urlencoded }));
 
 // CAMARA x-correlator header middleware
 app.use((req, res, next) => {
