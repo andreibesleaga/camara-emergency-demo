@@ -32,16 +32,20 @@ router.delete('/rules/:id', (req, res) => {
 });
 
 router.get('/stream', (req, res) => {
+  console.log('[AlertsRoute] SSE client connected');
+  
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
   const send = (evt: any) => {
+    console.log('[AlertsRoute] Sending alert to SSE client:', evt);
     res.write(`data: ${JSON.stringify(evt)}\n\n`);
   };
 
-  subscribeAlerts(send);
+  // Subscribe and get unsubscribe function
+  const unsubscribe = subscribeAlerts(send);
 
   // keep-alive ping
   const keepAlive = setInterval(() => {
@@ -49,7 +53,9 @@ router.get('/stream', (req, res) => {
   }, 20000);
 
   req.on('close', () => {
+    console.log('[AlertsRoute] SSE client disconnected');
     clearInterval(keepAlive);
+    unsubscribe(); // Remove this subscriber from the list
     res.end();
   });
 });

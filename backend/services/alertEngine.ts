@@ -13,30 +13,62 @@ export function addRule(rule: Omit<GeofenceRule, 'id'>): GeofenceRule {
   const id = uuidv4();
   const r: GeofenceRule = { id, ...rule };
   rules[id] = r;
+  console.log(`[AlertEngine] Rule added: ${id} (${rule.name}) - Active: ${rule.active}`);
   return r;
 }
 export function listRules() { return Object.values(rules); }
-export function deleteRule(id: string) { delete rules[id]; }
-export function subscribeAlerts(handler: (event: AlertEvent) => void) { subscribers.push(handler); }
+export function deleteRule(id: string) { 
+  console.log(`[AlertEngine] Rule deleted: ${id}`);
+  delete rules[id]; 
+}
+export function subscribeAlerts(handler: (event: AlertEvent) => void) { 
+  console.log(`[AlertEngine] New subscriber added (total: ${subscribers.length + 1})`);
+  subscribers.push(handler);
+  
+  // Return unsubscribe function
+  return () => {
+    const index = subscribers.indexOf(handler);
+    if (index > -1) {
+      subscribers.splice(index, 1);
+      console.log(`[AlertEngine] Subscriber removed (total: ${subscribers.length})`);
+    }
+  };
+}
 
 async function evaluateRule(rule: GeofenceRule) {
   const snap = await getDensitySnapshot(rule.id, ensureClosedPolygon(rule.polygon));
   const evt = mockAlert(rule.id, snap.totalDevices, rule.thresholdDevices);
-  if (evt.level !== 'info') {
-    subscribers.forEach(h => h(evt));
-    if (rule.alertChannels.includes('webhook') && rule.webhookUrl) {
-      await axios.post(rule.webhookUrl, evt).catch(() => {});
+  
+  console.log(`[AlertEngine] Rule ${rule.id} (${rule.name}): ${snap.totalDevices} devices (threshold: ${rule.thresholdDevices}) - Level: ${evt.level}`);
+  console.log(`[AlertEngine] Broadcasting to ${subscribers.length} subscriber(s)`);
+  
+  // Always send alerts to UI subscribers (for real-time monitoring)
+  subscribers.forEach((h, index) => {
+    try {
+      h(evt);
+      console.log(`[AlertEngine] Alert sent to subscriber #${index + 1}`);
+    } catch (err) {
+      console.error(`[AlertEngine] Error sending to subscriber #${index + 1}:`, err);
     }
+  });
+  
+  // Only trigger webhooks for warning/critical alerts
+  if (evt.level !== 'info' && rule.alertChannels.includes('webhook') && rule.webhookUrl) {
+    await axios.post(rule.webhookUrl, evt).catch((err) => {
+      console.error(`[AlertEngine] Webhook failed for rule ${rule.id}:`, err.message);
+    });
   }
 }
 
 schedule.scheduleJob('*/2 * * * *', async () => {
-  for (const rule of Object.values(rules)) {
-    if (!rule.active) continue;
+  const activeRules = Object.values(rules).filter(r => r.active);
+  console.log(`[AlertEngine] Scheduled evaluation running - ${activeRules.length} active rule(s)`);
+  
+  for (const rule of activeRules) {
     try {
       await evaluateRule(rule);
     } catch (err) {
-      console.error("Error evaluating rule", rule.id, err);
+      console.error(`[AlertEngine] Error evaluating rule ${rule.id}:`, err);
     }
   }
 });

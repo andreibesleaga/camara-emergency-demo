@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useStore } from '../store';
 
 export default function AlertsPanel() {
+  console.log('[AlertsPanel] Component rendering/re-rendering');
+  
   const { polygon, pushAlert } = useStore();
   const [threshold, setThreshold] = React.useState(3000);
   const [name, setName] = React.useState('Bucharest Center Alert');
@@ -20,10 +22,37 @@ export default function AlertsPanel() {
   }
 
   useEffect(() => {
+    console.log('[AlertsPanel] Setting up EventSource for /api/alerts/stream');
+    
     const ev = new EventSource('/api/alerts/stream');
-    ev.onmessage = (m) => pushAlert(JSON.parse(m.data));
-    return () => ev.close();
-  }, [pushAlert]);
+    
+    ev.onmessage = (m) => {
+      console.log('[AlertsPanel] Received alert:', m.data);
+      const alert = JSON.parse(m.data);
+      console.log('[AlertsPanel] Parsed alert:', alert);
+      
+      // Get the latest pushAlert from store to avoid stale closure
+      const { pushAlert: currentPushAlert } = useStore.getState();
+      console.log('[AlertsPanel] Calling pushAlert...');
+      currentPushAlert(alert);
+      console.log('[AlertsPanel] pushAlert called successfully');
+    };
+    
+    ev.onerror = (err) => {
+      console.error('[AlertsPanel] EventSource error:', err);
+      console.error('[AlertsPanel] EventSource readyState:', ev.readyState);
+    };
+    
+    ev.onopen = () => {
+      console.log('[AlertsPanel] EventSource connection opened');
+      console.log('[AlertsPanel] EventSource readyState:', ev.readyState);
+    };
+    
+    return () => {
+      console.log('[AlertsPanel] Cleaning up EventSource');
+      ev.close();
+    };
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <div style={{ marginTop: 16 }}>

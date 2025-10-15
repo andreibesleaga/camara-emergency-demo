@@ -76,6 +76,10 @@ export function applySecurityMiddleware(app: Express, config: SecurityConfig): v
       level: config.compression.level,
       threshold: config.compression.threshold,
       filter: (req, res) => {
+        // Don't compress Server-Sent Events (SSE) streams
+        if (res.getHeader('Content-Type') === 'text/event-stream') {
+          return false;
+        }
         // Don't compress if client doesn't support it
         if (req.headers['x-no-compression']) {
           return false;
