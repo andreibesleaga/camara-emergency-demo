@@ -19,6 +19,10 @@ export default function App() {
         </ErrorBoundary>
 
         <ErrorBoundary>
+          <DeviceInfoPanel />
+        </ErrorBoundary>
+
+        <ErrorBoundary>
           <FlowChartPanel />
         </ErrorBoundary>
 
@@ -28,10 +32,6 @@ export default function App() {
 
         <ErrorBoundary>
           <RoutingPanel />
-        </ErrorBoundary>
-
-        <ErrorBoundary>
-          <DeviceInfoPanel />
         </ErrorBoundary>
 
         <div className="footer">
