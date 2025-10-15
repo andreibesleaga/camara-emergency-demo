@@ -1,5 +1,6 @@
 import CamaraSDK from 'camara-sdk';
 import { loadConfig, ProductIntegrationConfig } from '../utils/config';
+import { CamaraError } from '../models/errors';
 import { getAccessTokenForProduct } from './camaraTokenService';
 
 export type CamaraProductKey = 'populationDensity' | 'regionDeviceCount' | 'deviceLocation' | 'alerts';
@@ -20,10 +21,10 @@ const REQUIRED_HEADERS = [
 
 function ensureProductEnabled(productKey: CamaraProductKey, product: ProductIntegrationConfig, useMock: boolean) {
   if (useMock) {
-    throw new Error('Real CAMARA integration is disabled while USE_MOCK=true.');
+    throw CamaraError.notImplemented('Real CAMARA integration is disabled while USE_MOCK=true.');
   }
   if (!product.enabled) {
-    throw new Error(`CAMARA integration for ${productKey} is disabled. Set CAMARA_${productKey.toUpperCase()}_ENABLED=true to activate.`);
+    throw CamaraError.notImplemented(`CAMARA integration for ${productKey} is disabled. Set CAMARA_${productKey.toUpperCase()}_ENABLED=true to activate.`);
   }
 }
 
@@ -35,7 +36,7 @@ export async function createCamaraClient(productKey: CamaraProductKey): Promise<
 
   const baseURL = product.baseUrl ?? cfg.camara.baseUrl;
   if (!baseURL) {
-    throw new Error(`CAMARA base URL is missing for product ${productKey}. Set CAMARA_BASE_URL or CAMARA_${productKey.toUpperCase()}_BASE_URL.`);
+    throw CamaraError.invalidArgument(`CAMARA base URL is missing for product ${productKey}. Set CAMARA_BASE_URL or CAMARA_${productKey.toUpperCase()}_BASE_URL.`);
   }
 
   const scopes = product.scopes.length > 0 ? product.scopes : cfg.camara.scopes;

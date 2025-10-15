@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { loadConfig } from './utils/config';
+import { CamaraError } from './models/errors';
 import locationRouter from './routes/location';
 import densityRouter from './routes/density';
 import alertsRouter from './routes/alerts';
@@ -17,6 +18,23 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+// CAMARA x-correlator header middleware
+app.use((req, res, next) => {
+  const correlator = req.headers['x-correlator'] as string | undefined;
+  if (correlator) {
+    // Validate pattern: ^[a-zA-Z0-9-_:;.\/<>{}]{0,256}$
+    if (!/^[a-zA-Z0-9-_:;.\/<>{}]{0,256}$/.test(correlator)) {
+      return res.status(400).json({
+        status: 400,
+        code: 'INVALID_ARGUMENT',
+        message: 'x-correlator header does not match required pattern',
+      });
+    }
+    res.setHeader('x-correlator', correlator);
+  }
+  next();
+});
+
 app.get('/api/health', (_req, res) => res.json({ ok: true, useMock: cfg.useMock }));
 
 app.use('/api/location', locationRouter);
@@ -24,6 +42,18 @@ app.use('/api/density', densityRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/routing', routingRouter);
 app.use('/api/mcp', mcpRouter);
+
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err instanceof CamaraError) {
+    return res.status(err.status).json(err.toJSON());
+  }
+  logger.error('Unhandled error', err);
+  res.status(500).json({
+    status: 500,
+    code: 'INTERNAL',
+    message: 'An internal server error occurred',
+  });
+});
 
 const distDir = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(distDir));

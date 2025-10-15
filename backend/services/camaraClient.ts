@@ -1,4 +1,5 @@
 import { DeviceLocation } from '../models/types';
+import { CamaraError } from '../models/errors';
 import { loadConfig } from '../utils/config';
 import { createCamaraClient } from './camaraIntegration';
 import logger from '../utils/logger';
@@ -7,7 +8,7 @@ export async function getDeviceLocationReal(deviceId: string): Promise<DeviceLoc
   const cfg = loadConfig();
 
   if (cfg.useMock || !cfg.camara.products.deviceLocation.enabled) {
-    throw new Error('Device location integration is disabled. Enable CAMARA_DEVICE_LOCATION_ENABLED and set USE_MOCK=false.');
+    throw CamaraError.notImplemented('Device location integration is disabled. Enable CAMARA_DEVICE_LOCATION_ENABLED and set USE_MOCK=false.');
   }
 
   if (cfg.camara.products.deviceLocation.usageMode !== 'subscription') {
@@ -24,10 +25,10 @@ export async function getDeviceLocationReal(deviceId: string): Promise<DeviceLoc
   });
 
   if (!subscription) {
-    throw new Error('No CAMARA geofencing subscription found for the requested device. Create a subscription first.');
+    throw CamaraError.notFound('No CAMARA geofencing subscription found for the requested device. Create a subscription first.');
   }
 
-  throw new Error(
+  throw CamaraError.notImplemented(
     'Device location data is provided asynchronously by CAMARA. Configure CAMARA_DEVICE_LOCATION_CALLBACK_URL to receive events and surface them to the UI.',
   );
 }

@@ -1,3 +1,11 @@
+/**
+ * Application-specific types for CAMARA Emergency Demo
+ * 
+ * Note: For production use, consider importing Device, PhoneNumber, and other
+ * standard types from CAMARA_common.yaml:
+ * https://github.com/camaraproject/Commonalities/blob/main/artifacts/CAMARA_common.yaml
+ */
+
 export type LatLng = { lat: number; lon: number };
 export type DeviceLocation = { deviceId: string; location: LatLng; accuracyMeters: number; timestamp: string; source: 'network' | 'gps' };
 export type Polygon = { coordinates: [number, number][] }; // [lon, lat]

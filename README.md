@@ -81,3 +81,11 @@ The camara-sdk repository ships with the generated [CAMARA MCP server](/camara-s
 4. Inside the assistant, use the `list_api_endpoints`, `get_api_endpoint_schema`, and `invoke_api_endpoint` tools (exposed automatically when `--tools=dynamic` is set) to discover and execute CAMARA endpoints. You can narrow scope with command-line filters such as `--resource=populationdensitydata` or load prepared subsets with `--tool` / `--no-tool` flags.
 
 Need to run the MCP server remotely? Launch it with `npx camara-mcp --transport=http --port 3030` and configure your client to target `http://localhost:3030`, optionally passing the same filters as URL query parameters.
+
+
+This demo follows [CAMARA API Design Guidelines](https://github.com/camaraproject/Commonalities/blob/main/documentation/CAMARA-API-Design-Guide.md) and implements:
+
+- CAMARA-compliant error responses (status, code, message)
+- OAuth2 client_credentials flow with OpenID Connect discovery
+- x-correlator header support for request traceability
+- Proper resource naming matching camara-sdk conventions
