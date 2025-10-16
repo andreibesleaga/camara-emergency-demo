@@ -1,4 +1,5 @@
 import ngeohash from 'ngeohash';
+import logger from '../utils/logger';
 import { DensitySnapshot, FlowSeries, Polygon } from '../models/types';
 import { Point, AreaType } from '../models/camara-common';
 import { mockDensitySnapshot, mockFlowSeries } from './mockGenerator';
@@ -67,15 +68,20 @@ function selectPrecision(): number {
 export async function getDensitySnapshot(areaId: string, polygon: Polygon): Promise<DensitySnapshot> {
   const normalizedPolygon = ensureClosedPolygon(polygon);
   polygonCache.set(areaId, normalizedPolygon);
+  
   if (cfg.useMock || !cfg.camara.products.populationDensity.enabled) {
+    logger.info(`[DensityEngine] Using MOCK data for area: ${areaId} (USE_MOCK=${cfg.useMock}, enabled=${cfg.camara.products.populationDensity.enabled})`);
     return mockDensitySnapshot(areaId, normalizedPolygon);
   }
 
+  logger.info(`[DensityEngine] Calling REAL CAMARA Population Density API for area: ${areaId}`);
   const client = await createCamaraClient('populationDensity');
   const boundary = polygonToBoundary(normalizedPolygon);
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - FLOW_INTERVAL_MINUTES * 60 * 1000);
 
+  logger.info(`[DensityEngine] API request: ${boundary.length} boundary points, time range: ${startTime.toISOString()} to ${endTime.toISOString()}, precision: ${selectPrecision()}`);
+  
   const response = await client.populationdensitydata.retrieve({
     area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
@@ -83,9 +89,12 @@ export async function getDensitySnapshot(areaId: string, polygon: Polygon): Prom
     precision: selectPrecision(),
   });
 
+  logger.info(`[DensityEngine] CAMARA API response received: ${response.timedPopulationDensityData.length} time intervals`);
+
   const latestInterval = response.timedPopulationDensityData.slice(-1)[0];
 
   if (!latestInterval) {
+    logger.warn(`[DensityEngine] No density data returned for area: ${areaId}`);
     return {
       areaId,
       timestamp: endTime.toISOString(),
@@ -105,6 +114,8 @@ export async function getDensitySnapshot(areaId: string, polygon: Polygon): Prom
 
   const totalDevices = points.reduce<number>((sum, point) => sum + point.count, 0);
 
+  logger.info(`[DensityEngine] Processed ${points.length} density cells, total devices: ${totalDevices}`);
+
   return {
     areaId,
     timestamp: latestInterval.endTime ?? endTime.toISOString(),
@@ -115,9 +126,11 @@ export async function getDensitySnapshot(areaId: string, polygon: Polygon): Prom
 
 export async function getFlowSeries(areaId: string): Promise<FlowSeries> {
   if (cfg.useMock || !cfg.camara.products.populationDensity.enabled) {
+    logger.info(`[DensityEngine] Using MOCK flow series for area: ${areaId}`);
     return mockFlowSeries(areaId);
   }
 
+  logger.info(`[DensityEngine] Calling REAL CAMARA API for flow series: ${areaId}`);
   const client = await createCamaraClient('populationDensity');
   const now = new Date();
   const hoursBack = Number(process.env.CAMARA_POPULATION_DENSITY_FLOW_HOURS ?? '6');
@@ -128,12 +141,16 @@ export async function getFlowSeries(areaId: string): Promise<FlowSeries> {
 
   const boundary = polygonToBoundary(cachedPolygon);
 
+  logger.info(`[DensityEngine] Flow series API request: ${hoursBack} hours lookback, ${startTime.toISOString()} to ${now.toISOString()}`);
+
   const response = await client.populationdensitydata.retrieve({
     area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
     endTime: now.toISOString(),
     precision: selectPrecision(),
   });
+
+  logger.info(`[DensityEngine] Flow series API response: ${response.timedPopulationDensityData.length} time intervals`);
 
   const series = response.timedPopulationDensityData.map((interval: any) => {
     const total = (interval.cellPopulationDensityData as CamaraDensityCell[]).reduce<number>(
@@ -145,6 +162,8 @@ export async function getFlowSeries(areaId: string): Promise<FlowSeries> {
       totalDevices: total,
     };
   });
+
+  logger.info(`[DensityEngine] Flow series processed: ${series.length} data points`);
 
   return {
     areaId,

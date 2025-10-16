@@ -35,11 +35,13 @@ async function resolveTokenEndpoint(oauth: OAuthConfig): Promise<string> {
     throw new Error('CAMARA_OAUTH_TOKEN_URL or CAMARA_OAUTH_DISCOVERY_URL must be provided for live mode.');
   }
 
+  logger.info(`[TokenService] Resolving OAuth token endpoint via discovery: ${oauth.discoveryUrl}`);
   const discoveryResponse = await axios.get(oauth.discoveryUrl, { timeout: 10_000 });
   const tokenEndpoint = discoveryResponse.data?.token_endpoint;
   if (!tokenEndpoint) {
     throw new Error(`OpenID discovery document at ${oauth.discoveryUrl} does not contain token_endpoint.`);
   }
+  logger.info(`[TokenService] Discovered token endpoint: ${tokenEndpoint}`);
   resolvedTokenEndpoint = tokenEndpoint;
   return tokenEndpoint;
 }
@@ -92,7 +94,7 @@ async function fetchAccessToken(cacheKey: CacheKey, scopes: string[], audience?:
     headers.Authorization = `Basic ${encoded}`;
   }
 
-  logger.debug(`Requesting CAMARA access token (scopes=${scopeList.join(' ') || 'default'}, audience=${effectiveAudience || 'n/a'})`);
+  logger.info(`[TokenService] Requesting OAuth token from: ${tokenUrl} (scopes: ${scopeList.join(' ') || 'default'}, audience: ${effectiveAudience || 'none'})`);
 
   const response = await axios.post(tokenUrl, params, {
     headers,
@@ -103,8 +105,11 @@ async function fetchAccessToken(cacheKey: CacheKey, scopes: string[], audience?:
   const expiresIn: number | undefined = response.data?.expires_in;
 
   if (!accessToken) {
+    logger.error(`[TokenService] Token endpoint did not return access_token`);
     throw new Error(`Token endpoint ${tokenUrl} did not return an access_token.`);
   }
+
+  logger.info(`[TokenService] OAuth token obtained successfully (expires in: ${expiresIn || 'unknown'}s)`);
 
   tokenCache.set(cacheKey, {
     accessToken,
@@ -118,14 +123,21 @@ export async function getAccessTokenForProduct(scopes: string[], audience?: stri
   const cacheKey = buildCacheKey(scopes, audience);
   const cached = tokenCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
+    logger.info(`[TokenService] Using cached OAuth token (scopes: ${scopes.join(' ')})`);
     return cached.accessToken;
   }
 
+  logger.info(`[TokenService] Cache miss or expired, fetching new OAuth token (scopes: ${scopes.join(' ')})`);
+
   const pending = pendingFetches.get(cacheKey);
-  if (pending) return pending;
+  if (pending) {
+    logger.info(`[TokenService] Token fetch already in progress, waiting...`);
+    return pending;
+  }
 
   const fetchPromise = fetchAccessToken(cacheKey, scopes, audience)
     .catch((err) => {
+      logger.error(`[TokenService] Token fetch failed: ${err.message}`);
       pendingFetches.delete(cacheKey);
       throw err;
     })

@@ -2,22 +2,28 @@ import { DeviceLocation, DensitySnapshot, FlowSeries, Polygon, AlertEvent, Route
 import { v4 as uuidv4 } from 'uuid';
 import * as turf from '@turf/turf';
 import { ensureClosedPolygon } from '../utils/geometry';
+import logger from '../utils/logger';
 
 function rnd(min: number, max: number) { return Math.random() * (max - min) + min; }
 
 export function mockDeviceLocation(deviceId: string): DeviceLocation {
+  logger.info(`[MockAPI] Generating mock device location for: ${deviceId}`);
   const baseLat = 44.4268 + rnd(-0.02, 0.02);
   const baseLon = 26.1025 + rnd(-0.03, 0.03);
-  return {
+  const source: 'network' | 'gps' = Math.random() > 0.6 ? 'network' : 'gps';
+  const location: DeviceLocation = {
     deviceId,
     location: { lat: baseLat, lon: baseLon },
     accuracyMeters: Math.round(rnd(10, 200)),
     timestamp: new Date().toISOString(),
-    source: Math.random() > 0.6 ? 'network' : 'gps'
+    source
   };
+  logger.info(`[MockAPI] Mock location generated: [${baseLat.toFixed(4)}, ${baseLon.toFixed(4)}] accuracy: ${location.accuracyMeters}m source: ${source}`);
+  return location;
 }
 
 export function mockDensitySnapshot(areaId: string, polygon: Polygon): DensitySnapshot {
+  logger.info(`[MockAPI] Generating mock density snapshot for area: ${areaId}`);
   const safePoly = ensureClosedPolygon(polygon);
   // Convert CAMARA Polygon boundary to turf-compatible format
   const coords = safePoly.boundary.map(p => [p.longitude, p.latitude]);
@@ -33,10 +39,12 @@ export function mockDensitySnapshot(areaId: string, polygon: Polygon): DensitySn
     totalDevices += count;
     points.push({ lat, lon, count });
   }
+  logger.info(`[MockAPI] Mock density snapshot generated: ${totalDevices} total devices across ${totalPoints} points`);
   return { areaId, timestamp: new Date().toISOString(), totalDevices, points };
 }
 
 export function mockFlowSeries(areaId: string): FlowSeries {
+  logger.info(`[MockAPI] Generating mock flow series for area: ${areaId}`);
   const intervalMinutes = 15;
   const segments = 24;
   const series = [];
@@ -46,6 +54,7 @@ export function mockFlowSeries(areaId: string): FlowSeries {
     base = Math.max(500, base + Math.round(rnd(-400, 400)));
     series.push({ timestamp: t, totalDevices: base });
   }
+  logger.info(`[MockAPI] Mock flow series generated: ${segments} data points over ${intervalMinutes}min intervals`);
   return { areaId, intervalMinutes, series };
 }
 

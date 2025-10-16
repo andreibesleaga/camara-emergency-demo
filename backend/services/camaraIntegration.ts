@@ -1,4 +1,5 @@
 import CamaraSDK from 'camara-sdk';
+import logger from '../utils/logger';
 import { loadConfig, ProductIntegrationConfig } from '../utils/config';
 import { CamaraError } from '../models/errors';
 import { getAccessTokenForProduct } from './camaraTokenService';
@@ -32,6 +33,8 @@ export async function createCamaraClient(productKey: CamaraProductKey): Promise<
   const cfg = loadConfig();
   const product = cfg.camara.products[productKey];
 
+  logger.info(`[CamaraClient] Creating client for product: ${productKey}`);
+
   ensureProductEnabled(productKey, product, cfg.useMock);
 
   const baseURL = product.baseUrl ?? cfg.camara.baseUrl;
@@ -39,8 +42,12 @@ export async function createCamaraClient(productKey: CamaraProductKey): Promise<
     throw CamaraError.invalidArgument(`CAMARA base URL is missing for product ${productKey}. Set CAMARA_BASE_URL or CAMARA_${productKey.toUpperCase()}_BASE_URL.`);
   }
 
+  logger.info(`[CamaraClient] Using base URL: ${baseURL}`);
+
   const scopes = product.scopes.length > 0 ? product.scopes : cfg.camara.scopes;
   const token = await getAccessTokenForProduct(scopes, product.audience ?? cfg.camara.oauth.audience);
+
+  logger.info(`[CamaraClient] Client created successfully for ${productKey}`);
 
   const clientOptions: Record<string, string | undefined> = {
     baseURL,

@@ -5,6 +5,7 @@ import logger from './utils/logger';
 import { loadConfig } from './utils/config';
 import { loadSecurityConfig } from './config/security';
 import { applySecurityMiddleware } from './middleware/security';
+import { requestLoggerMiddleware } from './middleware/requestLogger';
 import { CamaraError } from './models/errors';
 import locationRouter from './routes/location';
 import densityRouter from './routes/density';
@@ -24,6 +25,9 @@ applySecurityMiddleware(app, securityCfg);
 // Body parser with configured limits
 app.use(express.json({ limit: securityCfg.bodyLimits.json }));
 app.use(express.urlencoded({ extended: true, limit: securityCfg.bodyLimits.urlencoded }));
+
+// Request logging middleware
+app.use(requestLoggerMiddleware);
 
 // CAMARA x-correlator header middleware
 app.use((req, res, next) => {
