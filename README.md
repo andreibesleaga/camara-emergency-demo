@@ -1,6 +1,6 @@
 # CAMARA Location Services Emergency Demo
 
-This is a mvp proof-of-concept minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of Distributed Early Warning Emergency Systems), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
+This is a mvp proof-of-concept minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
 
 [ Overview of product rationale ](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md)
 
