@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import path from 'path';
-import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { loadConfig } from './utils/config';
 import { loadSecurityConfig } from './config/security';
@@ -12,8 +14,6 @@ import densityRouter from './routes/density';
 import alertsRouter from './routes/alerts';
 import routingRouter from './routes/routing';
 import mcpRouter from './routes/mcp';
-
-dotenv.config();
 const cfg = loadConfig();
 const securityCfg = loadSecurityConfig();
 
