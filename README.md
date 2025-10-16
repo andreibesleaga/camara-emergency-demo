@@ -1,8 +1,8 @@
 # CAMARA Location Services Emergency Demo
 
-This is a mvp proof-of-concept minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
+This is a mvp proof-of-concept minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews)), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
 
-[ Overview of product rationale ](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md)
+Here is an [overview of product rationale and more information](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md), and here is the live running demo (with backend generating fake data a endpoints, not real telecom API connected, which, for safety reasons is enabled only when is required from orange hackathon or others: [https://camara-emergency.up.railway.app/](https://camara-emergency.up.railway.app/).
 
 Minimal full-stack demo: Node.js backend + React/Leaflet frontend + MCP bridge + mock generator,
 using camara-sdk and camara-mcp libraries, some with the help of AI.
