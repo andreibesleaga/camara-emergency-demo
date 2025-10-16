@@ -11,14 +11,34 @@ export default function AlertsPanel() {
 
   async function createRule() {
     if (!polygon) return alert('Set polygon first');
+    
+    // Convert polygon to CAMARA format
+    const boundary = polygon.map(([lon, lat]) => ({
+      latitude: lat,
+      longitude: lon
+    }));
+    
     const rule = await fetch('/api/alerts/rules', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name, polygon: { coordinates: polygon }, thresholdDevices: threshold,
-        alertChannels: webhookUrl ? ['ui','webhook'] : ['ui'], webhookUrl
+        name, 
+        polygon: { 
+          areaType: 'POLYGON', 
+          boundary 
+        }, 
+        thresholdDevices: threshold,
+        alertChannels: webhookUrl ? ['ui','webhook'] : ['ui'], 
+        webhookUrl,
+        active: true
       })
     }).then(r => r.json());
-    alert(`Rule created: ${rule.id}`);
+    
+    if (rule.error) {
+      alert(`Error creating rule: ${rule.error}`);
+      return;
+    }
+    
+    alert(`Rule created: ${rule.id} (${rule.name})`);
   }
 
   useEffect(() => {

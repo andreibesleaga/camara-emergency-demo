@@ -35,7 +35,7 @@ export default function App() {
         </ErrorBoundary>
 
         <div className="footer">
-          <small>Mock mode toggled by USE_MOCK. Use CAMARA_ .env settings for real connectivity to Telecom Network APIs.</small>
+          <small>Toggle test data mode with USE_MOCK. Use CAMARA_ .env settings for real connectivity to Telecom Network APIs.</small>
         </div>
       </div>
 

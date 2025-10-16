@@ -10,10 +10,29 @@ export default function ControlsPanel() {
 
   async function fetchDensity() {
     if (!polygon) return alert('Set polygon first');
+    
+    // Convert polygon to CAMARA format
+    const boundary = polygon.map(([lon, lat]) => ({
+      latitude: lat,
+      longitude: lon
+    }));
+    
     const r = await fetch('/api/density/snapshot', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ areaId, polygon: { coordinates: polygon } })
+      body: JSON.stringify({ 
+        areaId, 
+        polygon: { 
+          areaType: 'POLYGON', 
+          boundary 
+        } 
+      })
     }).then(r => r.json());
+    
+    if (r.error) {
+      alert(`Error: ${r.error}`);
+      return;
+    }
+    
     setDensity(r.points);
   }
 
