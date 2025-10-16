@@ -80,16 +80,37 @@ export async function getDensitySnapshot(areaId: string, polygon: Polygon): Prom
   const endTime = new Date();
   const startTime = new Date(endTime.getTime() - FLOW_INTERVAL_MINUTES * 60 * 1000);
 
-  logger.info(`[DensityEngine] API request: ${boundary.length} boundary points, time range: ${startTime.toISOString()} to ${endTime.toISOString()}, precision: ${selectPrecision()}`);
-  
-  const response = await client.populationdensitydata.retrieve({
+  const requestPayload = {
     area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
     precision: selectPrecision(),
-  });
+  };
 
-  logger.info(`[DensityEngine] CAMARA API response received: ${response.timedPopulationDensityData.length} time intervals`);
+  logger.info(`[DensityEngine] API request: ${boundary.length} boundary points, time range: ${startTime.toISOString()} to ${endTime.toISOString()}, precision: ${selectPrecision()}`);
+  logger.info(`[DensityEngine] Request payload: ${JSON.stringify(requestPayload, null, 2)}`);
+  
+  let response;
+  try {
+    response = await client.populationdensitydata.retrieve(requestPayload);
+    logger.info(`[DensityEngine] CAMARA API SUCCESS - Response received: ${JSON.stringify(response, null, 2)}`);
+    logger.info(`[DensityEngine] Response has ${response.timedPopulationDensityData?.length || 0} time intervals`);
+  } catch (error: any) {
+    logger.error(`[DensityEngine] CAMARA API ERROR - Full error details:`, {
+      message: error.message,
+      status: error.status || error.statusCode,
+      statusText: error.statusText,
+      response: error.response ? JSON.stringify(error.response, null, 2) : 'No response',
+      data: error.data ? JSON.stringify(error.data, null, 2) : 'No data',
+      body: error.body ? JSON.stringify(error.body, null, 2) : 'No body',
+      headers: error.headers ? JSON.stringify(error.headers, null, 2) : 'No headers',
+      url: error.url || error.config?.url,
+      method: error.method || error.config?.method,
+      requestData: error.config?.data,
+      stack: error.stack,
+    });
+    throw error;
+  }
 
   const latestInterval = response.timedPopulationDensityData.slice(-1)[0];
 
@@ -141,16 +162,37 @@ export async function getFlowSeries(areaId: string): Promise<FlowSeries> {
 
   const boundary = polygonToBoundary(cachedPolygon);
 
-  logger.info(`[DensityEngine] Flow series API request: ${hoursBack} hours lookback, ${startTime.toISOString()} to ${now.toISOString()}`);
-
-  const response = await client.populationdensitydata.retrieve({
+  const requestPayload = {
     area: { areaType: AreaType.POLYGON, boundary },
     startTime: startTime.toISOString(),
     endTime: now.toISOString(),
     precision: selectPrecision(),
-  });
+  };
 
-  logger.info(`[DensityEngine] Flow series API response: ${response.timedPopulationDensityData.length} time intervals`);
+  logger.info(`[DensityEngine] Flow series API request: ${hoursBack} hours lookback, ${startTime.toISOString()} to ${now.toISOString()}`);
+  logger.info(`[DensityEngine] Request payload: ${JSON.stringify(requestPayload, null, 2)}`);
+
+  let response;
+  try {
+    response = await client.populationdensitydata.retrieve(requestPayload);
+    logger.info(`[DensityEngine] Flow series API SUCCESS - Response: ${JSON.stringify(response, null, 2)}`);
+    logger.info(`[DensityEngine] Flow series API response: ${response.timedPopulationDensityData?.length || 0} time intervals`);
+  } catch (error: any) {
+    logger.error(`[DensityEngine] Flow series API ERROR - Full error details:`, {
+      message: error.message,
+      status: error.status || error.statusCode,
+      statusText: error.statusText,
+      response: error.response ? JSON.stringify(error.response, null, 2) : 'No response',
+      data: error.data ? JSON.stringify(error.data, null, 2) : 'No data',
+      body: error.body ? JSON.stringify(error.body, null, 2) : 'No body',
+      headers: error.headers ? JSON.stringify(error.headers, null, 2) : 'No headers',
+      url: error.url || error.config?.url,
+      method: error.method || error.config?.method,
+      requestData: error.config?.data,
+      stack: error.stack,
+    });
+    throw error;
+  }
 
   const series = response.timedPopulationDensityData.map((interval: any) => {
     const total = (interval.cellPopulationDensityData as CamaraDensityCell[]).reduce<number>(
