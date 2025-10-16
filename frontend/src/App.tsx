@@ -35,7 +35,8 @@ export default function App() {
         </ErrorBoundary>
 
         <div className="footer">
-          <small>Toggle test data mode with USE_MOCK. Use CAMARA_ .env settings for real connectivity to Telecom Network APIs.</small>
+          <small> Toggle test data mode with USE_MOCK. Use CAMARA_ .env settings for real connectivity to Telecom Network APIs. </small> 
+          <small> More on: <a target="_blank" href='https://github.com/andreibesleaga/camara-emergency-demo'>https://github.com/andreibesleaga/camara-emergency-demo</a> </small> 
         </div>
       </div>
 
