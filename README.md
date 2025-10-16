@@ -1,13 +1,21 @@
 # CAMARA Location Services Emergency Demo
 
-This is a mvp proof-of-concept minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews)), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
+## Info
 
-Here is an [overview of product rationale and more information](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md), and here is the live running demo (with backend generating fake data a endpoints, not real telecom API connected, which, for safety reasons is enabled only when is required from orange hackathon or others: [https://camara-emergency.up.railway.app/](https://camara-emergency.up.railway.app/).
+This is a mvp proof-of-concept, minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews)), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
+
+## Background
+
+- Here is an [overview of product rationale and more information](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md);
+- Here is the live running demo (with backend generating fake data a endpoints, not real telecom API connected, which, for safety reasons is enabled only when is required from orange hackathon or others: [https://camara-emergency.up.railway.app/](https://camara-emergency.up.railway.app/);
+- This app is based on [CAMARA Unified OpenAPI](https://github.com/andreibesleaga/camara-openapi) and [CAMARA SDK](https://github.com/andreibesleaga/camara-sdk), unofficial helpers, to the official [CAMARA Project](https://github.com/camaraproject/);
+
+## Stack
 
 Minimal full-stack demo: Node.js backend + React/Leaflet frontend + MCP bridge + mock generator,
 using camara-sdk and camara-mcp libraries, some with the help of AI.
 
-Quick start
+## Quick start
 
 1. Copy .env.example to .env and set USE_MOCK=true
 2. npm install
