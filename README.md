@@ -6,6 +6,7 @@ This is a mvp proof-of-concept, minimal app demo, for using CAMARA Telecom Netwo
 
 ## Background
 
+- Here is a [technical presentation article](https://doi.org/10.22541/au.176072436.67915955/v1) and here [another general article with Business Cases](https://medium.com/@andrei-besleaga/telco-network-apis-for-real-time-emergency-response-systems-and-other-commercial-applications-784323e9c6dc);
 - Here is an [overview of product rationale and more information](https://github.com/andreibesleaga/camara-emergency-demo/blob/main/PRODUCT_OVERVIEW.md);
 - Here is the live running demo (with backend generating fake data a endpoints, not real telecom API connected, which, for safety reasons is enabled only when is required from orange hackathon or others: [https://camara-emergency.up.railway.app/](https://camara-emergency.up.railway.app/);
 - This app is based on [CAMARA Unified OpenAPI](https://github.com/andreibesleaga/camara-openapi) and [CAMARA SDK](https://github.com/andreibesleaga/camara-sdk), unofficial helpers, to the official [CAMARA Project](https://github.com/camaraproject/);
