@@ -280,7 +280,7 @@ This document outlines commercial applications and use cases built on the CAMARA
 - Driver safety optimization
 - Integration with transport management systems
 - Integration with energy grids and chargers networks
-- Backup APIs methods
+- Backup APIs methods to complete existing methods
 
 **Target Customers**
 
