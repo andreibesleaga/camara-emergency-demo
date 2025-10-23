@@ -1,7 +1,472 @@
-html, body, #root { height: 100%; margin: 0; }
-.layout { display: grid; grid-template-columns: 360px auto; height: 100%; }
-.sidebar { padding: 12px; border-right: 1px solid #ddd; overflow-y: auto; }
-.map { height: 100%; }
-.sidebar input, .sidebar textarea { width: 100%; margin: 4px 0; }
-.sidebar button { margin: 4px 4px 4px 0; }
-.footer { margin-top: 16px; color: #666; }
+/* Emergency Services Demo - Modern Responsive Design */
+
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #1976d2;
+    --primary-dark: #115293;
+    --primary-light: #42a5f5;
+    --secondary-color: #dc004e;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --background: #f5f5f5;
+    --surface: #ffffff;
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --border-color: #e0e0e0;
+    --border-color-dark: #bdbdbd;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+    --shadow-lg: 0 6px 16px rgba(0,0,0,0.15);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-width: 400px;
+    --header-height: 60px;
+}
+
+/* Reset and base styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--background);
+}
+
+#root {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main Layout - Desktop first, responsive for mobile */
+.layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border-color);
+    padding: clamp(1rem, 2vw, 1.5rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: var(--shadow);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border-color-dark);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Map Container */
+.map {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    background: var(--background);
+}
+
+/* Form Elements */
+.sidebar input,
+.sidebar textarea,
+.sidebar select {
+    width: 100%;
+    margin: 0.375rem 0;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    font-family: inherit;
+    transition: var(--transition);
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.sidebar input:focus,
+.sidebar textarea:focus,
+.sidebar select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.sidebar input:hover:not(:focus),
+.sidebar textarea:hover:not(:focus),
+.sidebar select:hover:not(:focus) {
+    border-color: var(--border-color-dark);
+}
+
+.sidebar textarea {
+    resize: vertical;
+    min-height: 80px;
+    max-height: 200px;
+}
+
+.sidebar input::placeholder,
+.sidebar textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* Labels */
+.sidebar label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.375rem;
+    font-weight: 500;
+    font-size: clamp(0.875rem, 2vw, 0.95rem);
+    color: var(--text-primary);
+}
+
+/* Buttons */
+.sidebar button {
+    margin: 0.375rem 0.375rem 0.375rem 0;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.sidebar button:hover:not(:disabled) {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+}
+
+.sidebar button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.sidebar button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.sidebar button.secondary {
+    background: var(--text-secondary);
+}
+
+.sidebar button.secondary:hover:not(:disabled) {
+    background: var(--text-primary);
+}
+
+.sidebar button.danger {
+    background: var(--error-color);
+}
+
+.sidebar button.danger:hover:not(:disabled) {
+    background: #d32f2f;
+}
+
+.sidebar button.success {
+    background: var(--success-color);
+}
+
+.sidebar button.success:hover:not(:disabled) {
+    background: #388e3c;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    color: var(--text-secondary);
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+    border-top: 1px solid var(--border-color);
+    line-height: 1.5;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.footer a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+/* Sections and Cards */
+.sidebar h1,
+.sidebar h2,
+.sidebar h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sidebar h1 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-top: 0;
+}
+
+.sidebar h2 {
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.sidebar h3 {
+    font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+}
+
+.sidebar p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+/* Status Messages */
+.status-message {
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    font-weight: 500;
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.status-message.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-color: var(--success-color);
+}
+
+.status-message.error {
+    background: #ffebee;
+    color: #c62828;
+    border-color: var(--error-color);
+}
+
+.status-message.warning {
+    background: #fff3e0;
+    color: #e65100;
+    border-color: var(--warning-color);
+}
+
+.status-message.info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-color: var(--primary-color);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 1.5rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Responsive Design for Tablets */
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 320px;
+    }
+    
+    .layout {
+        grid-template-columns: var(--sidebar-width) 1fr;
+    }
+}
+
+/* Responsive Design for Mobile - Stack layout */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 100%;
+    }
+    
+    .layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        position: relative;
+    }
+    
+    .sidebar {
+        max-height: 50vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
+        position: relative;
+    }
+    
+    .map {
+        min-height: 50vh;
+    }
+    
+    .sidebar button {
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    .sidebar {
+        padding: 0.75rem;
+    }
+    
+    .sidebar input,
+    .sidebar textarea,
+    .sidebar select {
+        padding: 0.625rem;
+        margin: 0.25rem 0;
+    }
+    
+    .sidebar button {
+        padding: 0.625rem 1rem;
+        margin: 0.25rem 0;
+    }
+    
+    .sidebar h1 {
+        font-size: 1.5rem;
+    }
+    
+    .sidebar h2 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Landscape Mobile Orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    .layout {
+        grid-template-columns: 40% 60%;
+        grid-template-rows: 1fr;
+    }
+    
+    .sidebar {
+        max-height: 100vh;
+        border-bottom: none;
+        border-right: 1px solid var(--border-color);
+    }
+    
+    .map {
+        min-height: 100vh;
+    }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .sidebar input,
+    .sidebar textarea,
+    .sidebar select,
+    .sidebar button {
+        border-width: 1.5px;
+    }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #333;
+        --border-color-dark: #000;
+    }
+    
+    .sidebar input,
+    .sidebar textarea,
+    .sidebar select {
+        border-width: 3px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .layout {
+        display: block;
+    }
+    
+    .map {
+        display: none;
+    }
+    
+    .sidebar {
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+    
+    .sidebar button {
+        display: none;
+    }
+}
