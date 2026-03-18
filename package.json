@@ -21,7 +21,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "express-mongo-sanitize": "^2.2.0",
-    "express-rate-limit": "^8.1.0",
+    "express-rate-limit": "^8.3.1",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
     "leaflet-draw": "^1.0.4",
