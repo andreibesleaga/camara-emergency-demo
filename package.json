@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@turf/turf": "^6.5.0",
-    "axios": "^1.15.0",
+    "axios": "^1.15.2",
     "camara-mcp": "^0.2.1",
     "camara-sdk": "^0.2.1",
     "chart.js": "^4.5.0",
@@ -19,7 +19,7 @@
     "concurrently": "^8.2.2",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^4.22.1",
+    "express": "^4.22.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
