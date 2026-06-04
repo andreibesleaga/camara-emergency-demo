@@ -11,6 +11,6 @@
     "strict": true
   },
   "include": ["backend/**/*"],
-  "exclude": ["frontend", "node_modules"]
+  "exclude": ["frontend", "node_modules", "backend/tests", "backend/dist"]
 }
 
