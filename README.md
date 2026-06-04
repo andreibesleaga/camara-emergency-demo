@@ -1,5 +1,8 @@
 # CAMARA Location Services Emergency Demo
 
+> [!WARNING]
+> Proof-of-concept / demo — not for production emergency-response deployment.
+
 ## Info
 
 This is a mvp proof-of-concept, minimal app demo, for using CAMARA Telecom Network SDKs/APIs, for integration to Emergency Systems (part of my other bigger project of [Distributed Early Warning Emergency Systems](https://github.com/andreibesleaga/mobile-mesh-ews)), and part of the Global/Romania Developer Challenge, by ORANGE: [Network APIs Hackathon 2025](https://developer.orange.com/upcoming_events/network-apis-hackathons-2025-powering-innovation-across-borders/).
@@ -17,6 +20,9 @@ Minimal full-stack demo: Node.js backend + React/Leaflet frontend + MCP bridge +
 using camara-sdk and camara-mcp libraries, some with the help of AI.
 
 ## Quick start
+
+Requires **Node.js >= 20.17** (the dependency tree includes ESM-only packages that
+need `require(esm)` support; `node:20-alpine` and Node 22/24 all work).
 
 1. Copy .env.example to .env and set USE_MOCK=true
 2. npm install
@@ -39,6 +45,9 @@ Leave `USE_MOCK=true` until valid sandbox credentials are supplied; once all req
 
 Backend Endpoints:
 
+- GET /healthz (liveness probe)
+- GET /readyz (readiness probe, reports mock/live mode)
+- GET /api/health (status + mock flag)
 - GET /api/location/device/:deviceId
 - POST /api/density/snapshot
 - GET /api/density/flow/:areaId
@@ -127,4 +136,24 @@ SECURITY_TRUST_PROXY=true
 - Configuration: [`.env.example`](./.env.example) (see Security Configuration section)
 
 All security features are enabled by default with safe settings and can be customized via environment variables.
+
+## Tests
+
+End-to-end tests (Vitest + supertest) cover every REST endpoint in mock mode,
+including the health probes, validation errors, and the `x-correlator` guard.
+
+```bash
+npm test          # requires Node 20+
+```
+
+The Express app is exported from [backend/app.ts](backend/app.ts); `backend/server.ts`
+only starts the listener, so the app can be imported by tests without binding a port.
+
+## Manual review checklist
+
+- **config:** copy `.env.example` → `.env`; `USE_MOCK=true` for the demo, security vars optional
+- **run:** `npm install` → `npm run build:full` → `npm run start` → http://localhost:8080
+- **examples:** see Backend Endpoints above; AI/MCP usage via `npx -y camara-mcp@latest`
+- **result:** map UI with mock device locations, density heatmap, alerts SSE, routing
+- **path:** backend `backend/` (`app.ts`, `routes/`, `services/`), frontend `frontend/`
 
