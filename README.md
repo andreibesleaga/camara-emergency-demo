@@ -14,6 +14,8 @@ This is a mvp proof-of-concept, minimal app demo, for using CAMARA Telecom Netwo
 - Here is the live running demo (with backend generating fake data a endpoints, not real telecom API connected, which, for safety reasons is enabled only when is required from orange hackathon or others: [https://camara-emergency.up.railway.app/](https://camara-emergency.up.railway.app/);
 - This app is based on [CAMARA Unified OpenAPI](https://github.com/andreibesleaga/camara-openapi) and [CAMARA SDK](https://github.com/andreibesleaga/camara-sdk), unofficial helpers, to the official [CAMARA Project](https://github.com/camaraproject/);
 
+- API Reference: https://github.com/andreibesleaga/camara-api-reference
+
 ## Stack
 
 Minimal full-stack demo: Node.js backend + React/Leaflet frontend + MCP bridge + mock generator,
