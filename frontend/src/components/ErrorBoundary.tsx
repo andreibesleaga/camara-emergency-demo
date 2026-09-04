@@ -25,11 +25,9 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: "1rem", color: "red" }}>
-          <h3>Something went wrong in this panel.</h3>
-          <pre style={{ whiteSpace: "pre-wrap" }}>
-            {this.state.error?.message}
-          </pre>
+        <div className="panel-error" role="alert">
+          <p className="panel-error__title">Something went wrong in this panel.</p>
+          <pre className="panel-error__detail">{this.state.error?.message}</pre>
         </div>
       );
     }

@@ -4,7 +4,11 @@ import L from 'leaflet';
 import 'leaflet-draw';
 import { useStore } from '../store';
 import 'leaflet-draw/dist/leaflet.draw.css';
-import 'leaflet-draw';
+
+/** Round for a readable textarea without moving the point on the map. */
+function round(value: number): number {
+  return Math.round(value * 1e5) / 1e5;
+}
 
 export default function DrawControl() {
   const map = useMap();
@@ -17,16 +21,21 @@ export default function DrawControl() {
     map.addLayer(drawnItems);
 
     const drawControl = new L.Control.Draw({
+      position: 'bottomright',
       draw: {
         polyline: false,
-        rectangle: true,
+        rectangle: {
+          // leaflet-draw 1.0.4's area read-out throws under strict mode, so it stays off.
+          showArea: false,
+          shapeOptions: { color: 'orange', className: 'map-area' }
+        },
         circle: false,
         marker: false,
         circlemarker: false,
         polygon: {
           allowIntersection: false,
-          showArea: true,
-          shapeOptions: { color: 'orange' }
+          showArea: false,
+          shapeOptions: { color: 'orange', className: 'map-area' }
         }
       },
       edit: {
@@ -36,7 +45,7 @@ export default function DrawControl() {
 
     map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, (e: any) => {
+    const onCreated = (e: any) => {
       drawnItems.clearLayers(); // only one polygon at a time
       drawnItems.addLayer(e.layer);
 
@@ -54,8 +63,19 @@ export default function DrawControl() {
       }
 
       setPolygon(coords);
-      console.log("Polygon set:", coords);
-    });
+      // Mirror the drawn shape into the Area card so both views agree.
+      useStore
+        .getState()
+        .setAreaText(JSON.stringify(coords.map(([lon, lat]) => [round(lon), round(lat)])));
+    };
+
+    map.on(L.Draw.Event.CREATED, onCreated);
+
+    return () => {
+      map.off(L.Draw.Event.CREATED, onCreated);
+      map.removeControl(drawControl);
+      map.removeLayer(drawnItems);
+    };
   }, [map, setPolygon]);
 
   return null;

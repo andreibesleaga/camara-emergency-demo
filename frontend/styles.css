@@ -1,472 +1,1543 @@
-/* Emergency Services Demo - Modern Responsive Design */
+/* ==========================================================================
+   CAMARA Emergency Demo — "Floating Deck"
+   Frontend-only stylesheet: design tokens, light/dark themes, the floating
+   layout over a full-bleed map, Leaflet/leaflet-draw theming, responsive
+   rules and accessibility affordances.
+   ========================================================================== */
 
-/* CSS Variables for consistent theming */
-:root {
-    --primary-color: #1976d2;
-    --primary-dark: #115293;
-    --primary-light: #42a5f5;
-    --secondary-color: #dc004e;
-    --success-color: #4caf50;
-    --warning-color: #ff9800;
-    --error-color: #f44336;
-    --background: #f5f5f5;
-    --surface: #ffffff;
-    --text-primary: #212121;
-    --text-secondary: #757575;
-    --border-color: #e0e0e0;
-    --border-color-dark: #bdbdbd;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow: 0 2px 8px rgba(0,0,0,0.1);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
-    --shadow-lg: 0 6px 16px rgba(0,0,0,0.15);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --sidebar-width: 400px;
-    --header-height: 60px;
+/* --------------------------------------------------------------------------
+   1. Fonts (self-hosted; the production CSP allows font-src 'self' only)
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/outfit-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/outfit-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/nunito-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Reset and base styles */
-*, *::before, *::after {
-    box-sizing: border-box;
+/* --------------------------------------------------------------------------
+   2. Design tokens
+   Light is the base; dark overrides under [data-theme="dark"] and, when the
+   visitor has expressed no preference, under prefers-color-scheme: dark.
+   Card surfaces keep a high alpha so text contrast stays inside AA whatever
+   map tile happens to sit behind them.
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --bg: #f7f5f2;
+  --fg: #1b1a19;
+  --fg-2: #6b6661;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-2: #f1eee9;
+  --surface-3: #e6e1d9;
+  --line: rgba(27, 26, 25, 0.12);
+  --line-strong: rgba(27, 26, 25, 0.26);
+
+  --accent: #ea580c;        /* decorative: marks, borders, chart line, pins */
+  --accent-text: #c2410c;   /* accent used as text or as a button background */
+  --accent-ink: #ffffff;    /* text on an --accent-text background */
+  --accent-bg: rgba(234, 88, 12, 0.12);
+  --warn-text: #9a3412;
+
+  --teal: #0f766e;
+  --red: #dc2626;
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+
+  --heat-1: rgba(251, 191, 36, 0.35);
+  --heat-2: rgba(234, 88, 12, 0.75);
+  --heat-3: rgba(220, 38, 38, 0.9);
+
+  --chart-fill: rgba(234, 88, 12, 0.15);
+  --chart-grid: rgba(27, 26, 25, 0.1);
+
+  --shadow: 0 16px 40px rgba(27, 26, 25, 0.14);
+  --shadow-sm: 0 6px 16px rgba(27, 26, 25, 0.12);
+
+  --font-body: 'Nunito Sans', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-display: 'Outfit', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --edge: 20px;
+  --gap: 12px;
+  --deck-w: 380px;
+  --bar-h: 56px;
+  --sheet-h: 0px;
+
+  --map-filter: none;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #141312;
+  --fg: #efeceb;
+  --fg-2: #a09a94;
+  --surface: rgba(30, 28, 27, 0.92);
+  --surface-2: #2a2725;
+  --surface-3: #35312e;
+  --line: rgba(239, 236, 235, 0.14);
+  --line-strong: rgba(239, 236, 235, 0.3);
+
+  --accent: #fb923c;
+  --accent-text: #fb923c;
+  --accent-ink: #1f1105;
+  --accent-bg: rgba(251, 146, 60, 0.14);
+  --warn-text: #fdba74;
+
+  --teal: #2dd4bf;
+  --red: #f87171;
+  --ok: #4ade80;
+  --ok-bg: rgba(74, 222, 128, 0.14);
+  --danger: #fca5a5;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+
+  --heat-1: rgba(251, 191, 36, 0.35);
+  --heat-2: rgba(251, 146, 60, 0.8);
+  --heat-3: rgba(248, 113, 113, 0.95);
+
+  --chart-fill: rgba(251, 146, 60, 0.18);
+  --chart-grid: rgba(239, 236, 235, 0.12);
+
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 6px 16px rgba(0, 0, 0, 0.5);
+
+  --map-filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #141312;
+    --fg: #efeceb;
+    --fg-2: #a09a94;
+    --surface: rgba(30, 28, 27, 0.92);
+    --surface-2: #2a2725;
+    --surface-3: #35312e;
+    --line: rgba(239, 236, 235, 0.14);
+    --line-strong: rgba(239, 236, 235, 0.3);
+
+    --accent: #fb923c;
+    --accent-text: #fb923c;
+    --accent-ink: #1f1105;
+    --accent-bg: rgba(251, 146, 60, 0.14);
+    --warn-text: #fdba74;
+
+    --teal: #2dd4bf;
+    --red: #f87171;
+    --ok: #4ade80;
+    --ok-bg: rgba(74, 222, 128, 0.14);
+    --danger: #fca5a5;
+    --danger-bg: rgba(248, 113, 113, 0.14);
+
+    --heat-1: rgba(251, 191, 36, 0.35);
+    --heat-2: rgba(251, 146, 60, 0.8);
+    --heat-3: rgba(248, 113, 113, 0.95);
+
+    --chart-fill: rgba(251, 146, 60, 0.18);
+    --chart-grid: rgba(239, 236, 235, 0.12);
+
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    --shadow-sm: 0 6px 16px rgba(0, 0, 0, 0.5);
+
+    --map-filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.7);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html {
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    line-height: 1.6;
-    color: var(--text-primary);
-    background: var(--background);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
 #root {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
 }
 
-/* Main Layout - Desktop first, responsive for mobile */
-.layout {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
-    height: 100%;
-    overflow: hidden;
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-/* Sidebar Styles */
-.sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border-color);
-    padding: clamp(1rem, 2vw, 1.5rem);
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-shadow: var(--shadow);
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
+p {
+  margin: 0;
 }
 
-.sidebar::-webkit-scrollbar {
-    width: 8px;
+a {
+  color: var(--accent-text);
 }
 
-.sidebar::-webkit-scrollbar-track {
-    background: var(--background);
+a:hover {
+  color: var(--fg);
 }
 
-.sidebar::-webkit-scrollbar-thumb {
-    background: var(--border-color-dark);
-    border-radius: 4px;
+code {
+  font-family: var(--font-mono);
+  font-size: 0.8125em;
+  background: var(--surface-3);
+  border-radius: 4px;
+  padding: 1px 5px;
 }
 
-.sidebar::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
-/* Map Container */
-.map {
-    height: 100%;
-    width: 100%;
-    position: relative;
-    background: var(--background);
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
-/* Form Elements */
-.sidebar input,
-.sidebar textarea,
-.sidebar select {
-    width: 100%;
-    margin: 0.375rem 0;
-    padding: 0.75rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: clamp(0.875rem, 2vw, 1rem);
-    font-family: inherit;
-    transition: var(--transition);
-    background: var(--surface);
-    color: var(--text-primary);
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.sidebar input:focus,
-.sidebar textarea:focus,
-.sidebar select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+.hidden {
+  display: none !important;
 }
 
-.sidebar input:hover:not(:focus),
-.sidebar textarea:hover:not(:focus),
-.sidebar select:hover:not(:focus) {
-    border-color: var(--border-color-dark);
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1200;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--fg);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-200%);
 }
 
-.sidebar textarea {
-    resize: vertical;
-    min-height: 80px;
-    max-height: 200px;
+.skip-link:focus-visible {
+  transform: translateY(0);
 }
 
-.sidebar input::placeholder,
-.sidebar textarea::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.7;
+/* --------------------------------------------------------------------------
+   4. Layout — the map fills the viewport, everything else floats above it
+   -------------------------------------------------------------------------- */
+.app {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
-/* Labels */
-.sidebar label {
-    display: block;
-    margin-top: 1rem;
-    margin-bottom: 0.375rem;
-    font-weight: 500;
-    font-size: clamp(0.875rem, 2vw, 0.95rem);
-    color: var(--text-primary);
+.stage {
+  position: absolute;
+  inset: 0;
 }
 
-/* Buttons */
-.sidebar button {
-    margin: 0.375rem 0.375rem 0.375rem 0;
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-radius: 8px;
-    font-size: clamp(0.875rem, 2vw, 1rem);
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    transition: var(--transition);
-    background: var(--primary-color);
-    color: white;
-    box-shadow: var(--shadow-sm);
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+/* Its own stacking context, so Leaflet's internal z-indexes stay contained. */
+.mapwrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--bg);
 }
 
-.sidebar button:hover:not(:disabled) {
-    background: var(--primary-dark);
-    box-shadow: var(--shadow);
-    transform: translateY(-1px);
+.bar {
+  position: absolute;
+  z-index: 4;
+  left: max(var(--edge), env(safe-area-inset-left));
+  right: max(var(--edge), env(safe-area-inset-right));
+  top: max(var(--edge), env(safe-area-inset-top));
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
 }
 
-.sidebar button:active:not(:disabled) {
-    transform: translateY(0);
+.mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-text);
+  color: var(--accent-ink);
 }
 
-.sidebar button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
+.bar__title {
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sidebar button.secondary {
-    background: var(--text-secondary);
+.bar__tabs {
+  min-width: 0;
 }
 
-.sidebar button.secondary:hover:not(:disabled) {
-    background: var(--text-primary);
+.bar__status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  font-size: 0.8125rem;
 }
 
-.sidebar button.danger {
-    background: var(--error-color);
+.stream {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--fg-2);
 }
 
-.sidebar button.danger:hover:not(:disabled) {
-    background: #d32f2f;
+.stream::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
 }
 
-.sidebar button.success {
-    background: var(--success-color);
+.stream--open {
+  color: var(--ok);
 }
 
-.sidebar button.success:hover:not(:disabled) {
-    background: #388e3c;
+.stream--error {
+  color: var(--danger);
 }
 
-/* Footer */
-.footer {
-    margin-top: auto;
-    padding-top: 1.5rem;
-    color: var(--text-secondary);
-    font-size: clamp(0.75rem, 2vw, 0.875rem);
-    border-top: 1px solid var(--border-color);
-    line-height: 1.5;
+.bar__mode {
+  color: var(--fg-2);
 }
 
-.footer a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: var(--transition);
+/* --------------------------------------------------------------------------
+   5. Pill tabs
+   -------------------------------------------------------------------------- */
+.pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
 
-.footer a:hover {
-    color: var(--primary-dark);
-    text-decoration: underline;
+.pills::-webkit-scrollbar {
+  display: none;
 }
 
-/* Sections and Cards */
-.sidebar h1,
-.sidebar h2,
-.sidebar h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-    color: var(--text-primary);
+.pill {
+  flex: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--fg-2);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.sidebar h1 {
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    margin-top: 0;
+.pill:hover {
+  color: var(--fg);
+  border-color: var(--accent);
 }
 
-.sidebar h2 {
-    font-size: clamp(1.25rem, 3vw, 1.5rem);
+.pill[aria-selected='true'] {
+  background: var(--accent-text);
+  color: var(--accent-ink);
+  border-color: transparent;
 }
 
-.sidebar h3 {
-    font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+.pill svg {
+  flex: none;
 }
 
-.sidebar p {
-    margin: 0.5rem 0;
-    color: var(--text-secondary);
-    font-size: clamp(0.875rem, 2vw, 1rem);
+/* --------------------------------------------------------------------------
+   6. The deck of cards
+   -------------------------------------------------------------------------- */
+.deck {
+  position: absolute;
+  z-index: 3;
+  left: max(var(--edge), env(safe-area-inset-left));
+  top: calc(max(var(--edge), env(safe-area-inset-top)) + var(--bar-h) + var(--gap));
+  bottom: max(var(--edge), env(safe-area-inset-bottom));
+  width: var(--deck-w);
+  max-width: calc(100vw - 2 * var(--edge));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-/* Status Messages */
+.deck__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 2px;
+}
+
+.deck__panel:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+.card {
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bar,
+  .card,
+  .about,
+  .alert-card,
+  .coords,
+  .deck {
+    background: var(--surface-2);
+  }
+}
+
+.card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.card__meta {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.78125rem;
+  color: var(--fg-2);
+  text-align: right;
+}
+
+.subhead {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.about {
+  flex: none;
+  color: var(--fg-2);
+  font-size: 0.78125rem;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+}
+
+.hint,
+.empty,
+.sub {
+  color: var(--fg-2);
+  font-size: 0.78125rem;
+}
+
+.empty {
+  padding: 8px 0;
+}
+
+/* --------------------------------------------------------------------------
+   7. Form controls
+   -------------------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.field__label {
+  font-size: 0.78125rem;
+  font-weight: 700;
+  color: var(--fg-2);
+}
+
+.input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.input::placeholder {
+  color: var(--fg-2);
+}
+
+.textarea {
+  min-height: 68px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78125rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.btn {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.84375rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  background: var(--accent-text);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+
+.btn--primary:hover {
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.btn--small {
+  min-height: 36px;
+  font-size: 0.78125rem;
+  align-self: flex-end;
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: progress;
+  transform: none;
+}
+
+.btn svg {
+  flex: none;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   8. Read-outs: KPI tiles, data lists, alerts, advisories
+   -------------------------------------------------------------------------- */
+.kpi {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.kpi__tile {
+  display: flex;
+  flex-direction: column-reverse; /* number above its label */
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.kpi__tile dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Values that are words rather than numbers (a clock time) need less room. */
+.kpi__tile--text dd {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.kpi__tile dt {
+  font-size: 0.71875rem;
+  color: var(--fg-2);
+}
+
+.datalist {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.datalist__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.datalist__row dt {
+  color: var(--fg-2);
+  font-size: 0.78125rem;
+}
+
+.datalist__row dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-row,
+.alert-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 0.78125rem;
+}
+
+.alert-row__body,
+.alert-card__body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.level {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--surface-3);
+  color: var(--fg-2);
+}
+
+.level--critical {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.level--warning {
+  background: var(--accent-bg);
+  color: var(--warn-text);
+}
+
+.level--info {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.advisories {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.advisory {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 0.78125rem;
+}
+
+.advisory__level {
+  flex: none;
+  font-weight: 700;
+}
+
+.advisory--critical .advisory__level {
+  color: var(--danger);
+}
+
+.advisory--warning .advisory__level {
+  color: var(--warn-text);
+}
+
 .status-message {
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0;
-    font-weight: 500;
-    border-left: 4px solid;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78125rem;
+  font-weight: 600;
 }
 
 .status-message.success {
-    background: #e8f5e9;
-    color: #2e7d32;
-    border-color: var(--success-color);
+  background: var(--ok-bg);
+  color: var(--ok);
 }
 
 .status-message.error {
-    background: #ffebee;
-    color: #c62828;
-    border-color: var(--error-color);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .status-message.warning {
-    background: #fff3e0;
-    color: #e65100;
-    border-color: var(--warning-color);
+  background: var(--accent-bg);
+  color: var(--warn-text);
 }
 
 .status-message.info {
-    background: #e3f2fd;
-    color: #1565c0;
-    border-color: var(--primary-color);
+  background: var(--accent-bg);
+  color: var(--accent-text);
 }
 
-/* Loading Spinner */
+.chart {
+  margin: 0;
+  position: relative;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 6px;
+}
+
+.panel-error {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.panel-error__title {
+  font-weight: 700;
+}
+
+.panel-error__detail {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
 .loading-spinner {
-    border: 3px solid var(--border-color);
-    border-top: 3px solid var(--primary-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 1.5rem auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--accent-text);
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: 8px;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Utility Classes */
-.hidden {
-    display: none !important;
+/* --------------------------------------------------------------------------
+   9. Floating alert stack and the coordinate pill
+   -------------------------------------------------------------------------- */
+.alert-stack {
+  position: absolute;
+  z-index: 3;
+  right: max(var(--edge), env(safe-area-inset-right));
+  top: calc(max(var(--edge), env(safe-area-inset-top)) + var(--bar-h) + var(--gap));
+  width: min(320px, calc(100vw - 2 * var(--edge)));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
 }
 
-.text-center {
-    text-align: center;
+.alert-stack__live,
+.alert-stack__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Responsive Design for Tablets */
+.alert-stack .alert-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 10px 12px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.alert-stack .btn {
+  pointer-events: auto;
+}
+
+.coords {
+  position: absolute;
+  z-index: 3;
+  left: calc(max(var(--edge), env(safe-area-inset-left)) + var(--deck-w) + var(--gap));
+  bottom: max(var(--edge), env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.78125rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.coords__label {
+  color: var(--fg-2);
+}
+
+/* --------------------------------------------------------------------------
+   10. Theme switch and link button
+   -------------------------------------------------------------------------- */
+.theme-toggle {
+  flex: none;
+  min-height: 40px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  color: var(--fg);
+}
+
+.theme-toggle__track {
+  position: relative;
+  width: 26px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent-text);
+}
+
+.theme-toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  transition: transform 0.18s ease;
+}
+
+.theme-toggle[aria-checked='true'] .theme-toggle__track::after {
+  transform: translateX(12px);
+}
+
+.link-btn {
+  flex: none;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-btn:hover {
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   11. Leaflet and leaflet-draw
+   -------------------------------------------------------------------------- */
+.leaflet-container {
+  background: var(--bg);
+  font-family: var(--font-body);
+}
+
+.leaflet-tile-pane {
+  filter: var(--map-filter);
+}
+
+/* Map features take their colours from the tokens, so they follow the theme. */
+.leaflet-overlay-pane .map-area {
+  stroke: var(--accent);
+  fill: var(--accent);
+  fill-opacity: 0.12;
+  stroke-width: 2;
+}
+
+.leaflet-overlay-pane .map-route {
+  stroke: var(--teal);
+  fill: none;
+}
+
+.leaflet-overlay-pane .map-accuracy {
+  stroke: var(--red);
+  fill: var(--red);
+  fill-opacity: 0.1;
+}
+
+.pin {
+  display: block; /* an inline span would render the radius as a teardrop */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--surface-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.pin--device {
+  background: var(--red);
+}
+
+/* Zoom, draw toolbar and attribution all live in the bottom-right corner. */
+.leaflet-bottom.leaflet-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 max(var(--edge), env(safe-area-inset-right))
+    max(var(--edge), env(safe-area-inset-bottom)) 0;
+}
+
+.leaflet-bottom.leaflet-right .leaflet-control {
+  margin: 0;
+  float: none;
+  clear: none;
+}
+
+.leaflet-control-attribution {
+  order: 9; /* keep the credit at the very bottom of the stack */
+  background: var(--surface) !important;
+  color: var(--fg-2);
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Underlined so the link is distinguishable from the credit text without colour. */
+:root .leaflet-control-attribution a,
+:root .leaflet-popup-content a,
+.about a {
+  color: var(--accent-text);
+  text-decoration: underline;
+}
+
+.leaflet-bar {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background-color: transparent;
+  color: var(--fg);
+  border-bottom-color: var(--line);
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+}
+
+.leaflet-touch .leaflet-bar a {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+}
+
+.leaflet-bar a:hover {
+  color: var(--accent-text);
+}
+
+.leaflet-bar a.leaflet-disabled {
+  color: var(--fg-2);
+  opacity: 0.5;
+  background-color: transparent;
+}
+
+/* The draw sprite is a dark PNG: invert it (over a transparent button) in dark. */
+:root[data-theme='dark'] .leaflet-draw-toolbar a {
+  filter: invert(1) brightness(1.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .leaflet-draw-toolbar a {
+    filter: invert(1) brightness(1.4);
+  }
+}
+
+:root .leaflet-draw-toolbar a:hover {
+  opacity: 0.7;
+}
+
+/* leaflet-draw's own stylesheet is bundled after this file, so these
+   overrides carry an extra `:root` to win on specificity. */
+:root .leaflet-draw-actions a {
+  background-color: var(--surface-2);
+  color: var(--fg);
+  border-left: 1px solid var(--line);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+:root .leaflet-draw-actions a:hover {
+  background-color: var(--surface-3);
+  color: var(--accent-text);
+}
+
+:root .leaflet-draw-tooltip {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  box-shadow: var(--shadow-sm);
+}
+
+:root .leaflet-draw-tooltip:before {
+  border-right-color: var(--line);
+}
+
+:root .leaflet-draw-tooltip-subtext {
+  color: var(--fg-2);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface-2);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+.leaflet-popup-close-button {
+  color: var(--fg-2) !important;
+}
+
+/* --------------------------------------------------------------------------
+   12. Mobile sheet handle (hidden on wide screens)
+   -------------------------------------------------------------------------- */
+.sheet-handle {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   13. Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  :root {
+    --deck-w: 340px;
+    --edge: 16px;
+  }
+
+  .bar__mode {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
-    :root {
-        --sidebar-width: 320px;
-    }
-    
-    .layout {
-        grid-template-columns: var(--sidebar-width) 1fr;
-    }
+  .bar__title {
+    font-size: 1rem;
+  }
+
+  .link-btn {
+    display: none;
+  }
 }
 
-/* Responsive Design for Mobile - Stack layout */
+@media (max-width: 900px) and (min-width: 769px) {
+  :root {
+    --deck-w: 300px;
+  }
+
+  .pill {
+    padding: 0 10px;
+  }
+
+  .coords {
+    left: calc(var(--edge) + var(--deck-w) + var(--gap));
+  }
+}
+
+/* Phones and small tablets: pills wrap to their own row, the deck becomes a
+   bottom sheet that starts collapsed so the map stays visible. */
 @media (max-width: 768px) {
-    :root {
-        --sidebar-width: 100%;
-    }
-    
-    .layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        position: relative;
-    }
-    
-    .sidebar {
-        max-height: 50vh;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 1rem;
-        position: relative;
-    }
-    
-    .map {
-        min-height: 50vh;
-    }
-    
-    .sidebar button {
-        width: 100%;
-        margin-right: 0;
-    }
+  :root {
+    --edge: 12px;
+    --gap: 10px;
+  }
+
+  .bar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 8px 8px 8px 12px;
+  }
+
+  .bar__title {
+    /* A zero flex basis keeps the title from pushing the switch onto a new row. */
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 0.9375rem;
+  }
+
+  .bar__tabs {
+    order: 10;
+    flex: 1 1 100%;
+  }
+
+  .bar__status {
+    /* No auto margin here: it would push the theme switch onto its own row. */
+    margin-left: 0;
+    gap: 6px;
+  }
+
+  /* Only the dot survives; the wording stays for assistive technology. */
+  .stream__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .alert-stack {
+    left: var(--edge);
+    right: var(--edge);
+    width: auto;
+  }
+
+  .alert-stack__list li:nth-child(n + 2) {
+    display: none;
+  }
+
+  .deck {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    z-index: 5;
+    max-height: 72dvh;
+    padding: 0 var(--edge) env(safe-area-inset-bottom);
+    border-radius: var(--radius) var(--radius) 0 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    transition: max-height 0.22s ease;
+  }
+
+  /* Cards lose their own chrome inside the sheet. */
+  .deck .card {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 6px 0 12px;
+  }
+
+  .deck .card + .card {
+    border-top: 1px solid var(--line);
+  }
+
+  .deck .about {
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 12px 0;
+  }
+
+  .deck__panel {
+    padding-bottom: 12px;
+  }
+
+  .sheet-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 4px 6px;
+    border: 0;
+    background: transparent;
+    color: var(--fg-2);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .sheet-handle::before {
+    content: '';
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  .sheet-handle__label {
+    position: absolute;
+    right: 20px;
+  }
+
+  .app.is-collapsed .deck__panel {
+    display: none;
+  }
+
+  .app.is-collapsed .coords {
+    display: inline-flex;
+  }
+
+  .app:not(.is-collapsed) .coords {
+    display: none;
+  }
+
+  .coords {
+    left: var(--edge);
+    right: auto;
+    max-width: calc(100vw - 2 * var(--edge));
+    /* Sits above Leaflet's attribution rather than across it. */
+    bottom: calc(min(var(--sheet-h, 0px), 45dvh) + 34px);
+  }
+
+  /* Keep the map's own controls clear of the sheet. */
+  .leaflet-bottom {
+    bottom: calc(min(var(--sheet-h, 0px), 45dvh));
+  }
 }
 
-/* Small Mobile Devices */
 @media (max-width: 480px) {
-    .sidebar {
-        padding: 0.75rem;
-    }
-    
-    .sidebar input,
-    .sidebar textarea,
-    .sidebar select {
-        padding: 0.625rem;
-        margin: 0.25rem 0;
-    }
-    
-    .sidebar button {
-        padding: 0.625rem 1rem;
-        margin: 0.25rem 0;
-    }
-    
-    .sidebar h1 {
-        font-size: 1.5rem;
-    }
-    
-    .sidebar h2 {
-        font-size: 1.25rem;
-    }
+  .bar__title {
+    font-size: 0.875rem;
+  }
+
+  .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .input,
+  .textarea {
+    font-size: 1rem; /* keep iOS from zooming when a field takes focus */
+  }
 }
 
-/* Landscape Mobile Orientation */
-@media (max-width: 768px) and (orientation: landscape) {
-    .layout {
-        grid-template-columns: 40% 60%;
-        grid-template-rows: 1fr;
-    }
-    
-    .sidebar {
-        max-height: 100vh;
-        border-bottom: none;
-        border-right: 1px solid var(--border-color);
-    }
-    
-    .map {
-        min-height: 100vh;
-    }
+/* Landscape phones: the deck goes back to being a side column. */
+@media (max-width: 950px) and (max-height: 540px) and (orientation: landscape) {
+  .deck {
+    left: max(var(--edge), env(safe-area-inset-left));
+    right: auto;
+    top: calc(max(var(--edge), env(safe-area-inset-top)) + var(--bar-h) + var(--gap));
+    bottom: max(var(--edge), env(safe-area-inset-bottom));
+    width: 46%;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .deck .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px) saturate(1.3);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    padding: 14px;
+  }
+
+  .deck .card + .card {
+    border-top: 1px solid var(--line);
+  }
+
+  .sheet-handle {
+    display: none;
+  }
+
+  .app.is-collapsed .deck__panel {
+    display: flex;
+  }
+
+  .app:not(.is-collapsed) .coords,
+  .app.is-collapsed .coords {
+    display: none;
+  }
+
+  .leaflet-bottom {
+    bottom: 0;
+  }
 }
 
-/* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .sidebar input,
-    .sidebar textarea,
-    .sidebar select,
-    .sidebar button {
-        border-width: 1.5px;
-    }
+/* Touch input gets comfortable targets everywhere. */
+@media (pointer: coarse) {
+  .pill,
+  .theme-toggle,
+  .link-btn,
+  .btn--small {
+    min-height: 44px;
+  }
 }
 
-/* Reduced Motion for Accessibility */
+/* --------------------------------------------------------------------------
+   14. Visitor preferences
+   -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-    :root {
-        --border-color: #333;
-        --border-color-dark: #000;
-    }
-    
-    .sidebar input,
-    .sidebar textarea,
-    .sidebar select {
-        border-width: 3px;
-    }
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(27, 26, 25, 0.5);
+    --line-strong: rgba(27, 26, 25, 0.75);
+    --fg-2: #4a4642;
+    --surface: #ffffff;
+  }
+
+  :root[data-theme='dark'] {
+    --line: rgba(239, 236, 235, 0.5);
+    --line-strong: rgba(239, 236, 235, 0.8);
+    --fg-2: #d6d1cc;
+    --surface: #171615;
+  }
+
+  .bar,
+  .card,
+  .coords,
+  .deck,
+  .alert-stack .alert-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
-/* Print Styles */
 @media print {
-    .layout {
-        display: block;
-    }
-    
-    .map {
-        display: none;
-    }
-    
-    .sidebar {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-    }
-    
-    .sidebar button {
-        display: none;
-    }
+  body {
+    overflow: visible;
+    background: #fff;
+    color: #000;
+  }
+
+  .app {
+    height: auto;
+    overflow: visible;
+  }
+
+  .stage,
+  .bar__tabs,
+  .theme-toggle,
+  .sheet-handle,
+  .btn {
+    display: none !important;
+  }
+
+  .bar,
+  .deck {
+    position: static;
+    width: auto;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .card {
+    background: none;
+    border: 1px solid #999;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    break-inside: avoid;
+  }
+
+  .deck__panel {
+    overflow: visible;
+  }
 }
