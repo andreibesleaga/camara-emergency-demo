@@ -1,36 +1,42 @@
-import { useStore } from '../store';
 import React from 'react';
+import { useStore } from '../store';
 
+/** Read-only view of the last device location returned by the location API. */
 export default function DeviceInfoPanel() {
-  const { deviceInfo } = useStore();
+  const deviceInfo = useStore((s) => s.deviceInfo);
 
   if (!deviceInfo) {
-    return <div>No device selected</div>;
+    return <p className="empty">No device selected.</p>;
   }
 
-  const {
-    deviceId,
-    source,
-    timestamp,
-    accuracyMeters,
-    location,
-  } = deviceInfo || {};
+  const { deviceId, source, timestamp, accuracyMeters, location } = deviceInfo;
 
   return (
-    <div>
-      <h3>Device {deviceId ?? 'Unknown'}</h3>
-      <p>Status source: {source ?? 'N/A'}</p>
-      <p>
-        Last seen:{' '}
-        {timestamp ? new Date(timestamp).toLocaleString() : 'Unknown'}
-      </p>
-      <p>Accuracy: {typeof accuracyMeters === 'number' ? `±${accuracyMeters}m` : 'N/A'}</p>
-      <p>
-        Location:{' '}
-        {location?.lat != null && location?.lon != null
-          ? `${location.lat}, ${location.lon}`
-          : 'Unknown'}
-      </p>
-    </div>
+    <dl className="datalist" data-testid="device-info">
+      <div className="datalist__row">
+        <dt>Device</dt>
+        <dd>{deviceId ?? 'Unknown'}</dd>
+      </div>
+      <div className="datalist__row">
+        <dt>Source</dt>
+        <dd>{source ?? 'N/A'}</dd>
+      </div>
+      <div className="datalist__row">
+        <dt>Last seen</dt>
+        <dd>{timestamp ? new Date(timestamp).toLocaleString() : 'Unknown'}</dd>
+      </div>
+      <div className="datalist__row">
+        <dt>Accuracy</dt>
+        <dd>{typeof accuracyMeters === 'number' ? `±${accuracyMeters} m` : 'N/A'}</dd>
+      </div>
+      <div className="datalist__row">
+        <dt>Location</dt>
+        <dd className="tabular">
+          {location?.lat != null && location?.lon != null
+            ? `${location.lat.toFixed(5)}, ${location.lon.toFixed(5)}`
+            : 'Unknown'}
+        </dd>
+      </div>
+    </dl>
   );
 }

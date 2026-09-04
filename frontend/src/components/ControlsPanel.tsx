@@ -1,81 +1,147 @@
 import React from 'react';
 import { useStore } from '../store';
-import AreaSelector from './AreaSelector';
+import FlowChartPanel from './FlowChartPanel';
+import { ChartIcon, HeatIcon } from '../icons';
 
-export default function ControlsPanel() {
-  const { setFlowSeries, setDeviceInfo } = useStore();
-  const { polygon, setDensity, setFlows } = useStore();
-  const [areaId, setAreaId] = React.useState('demo-area');
-  const clickedCoords = useStore((s) => s.clickedCoords);
+type Message = { kind: 'error' | 'success'; text: string } | null;
+
+function formatNumber(value: number): string {
+  return value.toLocaleString('en-US');
+}
+
+/**
+ * Density card: pulls a density snapshot (drawn as the heat layer) and the flow
+ * series (drawn as the chart) for the current area, and reports both as tiles.
+ */
+export default function ControlsPanel({ chartHeight = 150 }: { chartHeight?: number }) {
+  const areaId = useStore((s) => s.areaId);
+  const polygon = useStore((s) => s.polygon);
+  const setDensitySnapshot = useStore((s) => s.setDensitySnapshot);
+  const setFlowSeries = useStore((s) => s.setFlowSeries);
+  const densityPoints = useStore((s) => s.densityPoints);
+  const densityTotal = useStore((s) => s.densityTotal);
+  const densityUpdatedAt = useStore((s) => s.densityUpdatedAt);
+
+  const [message, setMessage] = React.useState<Message>(null);
+  const [busy, setBusy] = React.useState<'snapshot' | 'flow' | null>(null);
 
   async function fetchDensity() {
-    if (!polygon) return alert('Set polygon first');
-    
+    if (!polygon) {
+      setMessage({ kind: 'error', text: 'Set an area first — use the Area tab or draw one on the map.' });
+      return;
+    }
+
     // Convert polygon to CAMARA format
     const boundary = polygon.map(([lon, lat]) => ({
       latitude: lat,
-      longitude: lon
+      longitude: lon,
     }));
-    
-    const r = await fetch('/api/density/snapshot', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        areaId, 
-        polygon: { 
-          areaType: 'POLYGON', 
-          boundary 
-        } 
-      })
-    }).then(r => r.json());
-    
-    if (r.error) {
-      alert(`Error: ${r.error}`);
-      return;
+
+    setBusy('snapshot');
+    setMessage(null);
+    try {
+      const r = await fetch('/api/density/snapshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          areaId,
+          polygon: {
+            areaType: 'POLYGON',
+            boundary,
+          },
+        }),
+      }).then((r) => r.json());
+
+      if (r.error) {
+        setMessage({ kind: 'error', text: `Density snapshot failed: ${r.error}` });
+        return;
+      }
+
+      setDensitySnapshot(r);
+      setMessage({
+        kind: 'success',
+        text: `Snapshot ready: ${formatNumber(r.totalDevices ?? 0)} devices across ${formatNumber(
+          (r.points ?? []).length,
+        )} cells.`,
+      });
+    } catch (error) {
+      console.error('Density snapshot failed:', error);
+      setMessage({ kind: 'error', text: 'Density snapshot failed: the request did not complete.' });
+    } finally {
+      setBusy(null);
     }
-    
-    setDensity(r.points);
   }
 
   async function fetchFlows() {
-    const r = await fetch(`/api/density/flow/${areaId}`).then(r => r.json());
-    setFlowSeries(r.series);
+    setBusy('flow');
+    setMessage(null);
+    try {
+      const r = await fetch(`/api/density/flow/${areaId}`).then((r) => r.json());
+      if (r.error) {
+        setMessage({ kind: 'error', text: `Flow series failed: ${r.error}` });
+        return;
+      }
+      setFlowSeries(r.series);
+      setMessage({
+        kind: 'success',
+        text: `Flow series ready: ${formatNumber((r.series ?? []).length)} points.`,
+      });
+    } catch (error) {
+      console.error('Flow series failed:', error);
+      setMessage({ kind: 'error', text: 'Flow series failed: the request did not complete.' });
+    } finally {
+      setBusy(null);
+    }
   }
 
-  async function lookupDevice() {
-    const deviceId = prompt('Enter deviceId (e.g., +40700000000)');
-    if (!deviceId) return;
-    const response = await fetch(`/api/location/device/${encodeURIComponent(deviceId)}`);
-    const payload = await response.json();
-    if (!response.ok || payload?.error) {
-      alert(payload?.error || 'Device lookup failed');
-      return;
-    }
-    setDeviceInfo(payload);
-    // alert(`Device: \${payload.deviceId}\nLat: \${payload.location.lat}\nLon: \${payload.location.lon}\nAcc: \${payload.accuracyMeters}m\n\${payload.source}`);
-  }
+  const updated = densityUpdatedAt
+    ? new Date(densityUpdatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '—';
 
   return (
-    <div>
-      <AreaSelector />
-      <div style={{ marginTop: 8 }}>
-        <label><b>Area ID:</b></label>
-        <input value={areaId} onChange={e => setAreaId(e.target.value)} />
+    <>
+      <div className="grid-2">
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={fetchDensity}
+          disabled={busy !== null}
+          data-testid="density-snapshot"
+        >
+          <HeatIcon size={16} />
+          Density snapshot
+        </button>
+        <button type="button" className="btn" onClick={fetchFlows} disabled={busy !== null}>
+          <ChartIcon size={16} />
+          Flow series
+        </button>
       </div>
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button onClick={fetchDensity}>Get density snapshot</button>
-        <button onClick={fetchFlows}>Get flow series</button>
-        <button onClick={lookupDevice}>Lookup device location</button>
-      </div>
-      <h3>Controls</h3>
-      <label>
-        Last clicked coordinates:
-        <input
-          type="text"
-          readOnly
-          value={clickedCoords ? `${clickedCoords[0].toFixed(5)}, ${clickedCoords[1].toFixed(5)}` : ''}
-          style={{ width: '100%', marginTop: '0.5rem' }}
-        />
-      </label>
-    </div>
+
+      <dl className="kpi">
+        <div className="kpi__tile">
+          <dt>devices</dt>
+          <dd data-testid="kpi-devices">{densityTotal === null ? '—' : formatNumber(densityTotal)}</dd>
+        </div>
+        <div className="kpi__tile">
+          <dt>cells</dt>
+          <dd>{densityPoints.length ? formatNumber(densityPoints.length) : '—'}</dd>
+        </div>
+        <div className="kpi__tile kpi__tile--text">
+          <dt>updated</dt>
+          <dd>{updated}</dd>
+        </div>
+      </dl>
+
+      {message ? (
+        <p
+          className={`status-message ${message.kind}`}
+          role={message.kind === 'error' ? 'alert' : 'status'}
+        >
+          {message.text}
+        </p>
+      ) : null}
+
+      <FlowChartPanel height={chartHeight} />
+    </>
   );
 }
