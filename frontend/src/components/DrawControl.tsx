@@ -27,7 +27,7 @@ export default function DrawControl() {
         rectangle: {
           // leaflet-draw 1.0.4's area read-out throws under strict mode, so it stays off.
           showArea: false,
-          shapeOptions: { color: 'orange', className: 'map-area' }
+          shapeOptions: { className: 'map-area' }
         },
         circle: false,
         marker: false,
@@ -35,7 +35,7 @@ export default function DrawControl() {
         polygon: {
           allowIntersection: false,
           showArea: false,
-          shapeOptions: { color: 'orange', className: 'map-area' }
+          shapeOptions: { className: 'map-area' }
         }
       },
       edit: {

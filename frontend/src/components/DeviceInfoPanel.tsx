@@ -3,7 +3,7 @@ import { useStore } from '../store';
 
 /** Read-only view of the last device location returned by the location API. */
 export default function DeviceInfoPanel() {
-  const { deviceInfo } = useStore();
+  const deviceInfo = useStore((s) => s.deviceInfo);
 
   if (!deviceInfo) {
     return <p className="empty">No device selected.</p>;

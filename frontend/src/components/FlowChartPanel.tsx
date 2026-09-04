@@ -17,7 +17,7 @@ import { cssVar, useThemeVersion } from '../theme';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function FlowChartPanel({ height = 150 }: { height?: number }) {
-  const { flowSeries } = useStore();
+  const flowSeries = useStore((s) => s.flowSeries);
   // Canvas drawings cannot read CSS variables: re-read the literals on a theme change.
   const themeVersion = useThemeVersion();
 

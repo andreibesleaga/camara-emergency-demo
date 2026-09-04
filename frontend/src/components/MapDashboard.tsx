@@ -141,7 +141,6 @@ export default function MapDashboard() {
         <LFPolygon
           positions={polygonLatLngs as any}
           className="map-area"
-          pathOptions={{ color: 'orange' }}
         />
       )}
 
@@ -153,7 +152,7 @@ export default function MapDashboard() {
         <Polyline
           positions={routeLatLngs as any}
           className="map-route"
-          pathOptions={{ color: 'dodgerblue', weight: 5 }}
+          pathOptions={{ weight: 5 }}
         />
       )}
 
@@ -168,7 +167,7 @@ export default function MapDashboard() {
             center={[deviceInfo.location.lat, deviceInfo.location.lon]}
             radius={deviceInfo.accuracyMeters}
             className="map-accuracy"
-            pathOptions={{ color: 'red', weight: 1, fillOpacity: 0.1 }}
+            pathOptions={{ weight: 1 }}
           />
         </>
       )}

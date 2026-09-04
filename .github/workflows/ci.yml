@@ -22,7 +22,30 @@ jobs:
       - run: npm ci
       - run: npm run build:full
       - run: npm test
-      - run: npm audit --audit-level=high
+      # Fails on genuine high/critical advisories, but tolerates the npm
+      # registry's audit endpoint being unreachable, which otherwise turns an
+      # outage into a red build.
+      - name: Audit dependencies (high and critical)
+        run: |
+          set +e
+          for attempt in 1 2 3; do
+            npm audit --json > audit.json 2> audit.err
+            if jq -e '.metadata.vulnerabilities' audit.json > /dev/null 2>&1; then
+              high=$(jq '.metadata.vulnerabilities.high' audit.json)
+              critical=$(jq '.metadata.vulnerabilities.critical' audit.json)
+              echo "Advisories: $critical critical, $high high."
+              if [ "$critical" -gt 0 ] || [ "$high" -gt 0 ]; then
+                npm audit --audit-level=high
+                exit 1
+              fi
+              exit 0
+            fi
+            echo "Attempt $attempt: the audit endpoint returned no report."
+            cat audit.err
+            sleep $(( attempt * 15 ))
+          done
+          echo "::warning::npm audit could not reach the registry after 3 attempts; the advisory gate did not run for this build."
+          exit 0
       - name: Generate CycloneDX SBOM
         run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cdx.json
       - uses: actions/upload-artifact@v7
