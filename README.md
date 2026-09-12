@@ -1,4 +1,4 @@
-# CAMARA Location Services Emergency Demo
+# CAMARA Location Services - Urban Emergency Demo
 
 > [!WARNING]
 > Proof-of-concept / demo — not for production emergency-response deployment.
