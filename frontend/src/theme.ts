@@ -93,6 +93,15 @@ export function useThemeVersion(): number {
   return version;
 }
 
+/**
+ * The theme currently applied to the document. `useTheme` owns a piece of local
+ * state and only the component holding the toggle sees it change; a component that
+ * merely follows the theme pairs this with `useThemeVersion`.
+ */
+export function currentTheme(): Theme {
+  return readApplied();
+}
+
 /** Resolve a CSS custom property to its literal value. */
 export function cssVar(name: string, fallback = ''): string {
   if (typeof window === 'undefined') return fallback;
