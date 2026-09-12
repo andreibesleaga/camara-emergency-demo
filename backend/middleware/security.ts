@@ -103,14 +103,22 @@ function createHelmetMiddleware(config: SecurityConfig): RequestHandler {
   if (!config.helmet.contentSecurityPolicy) {
     helmetConfig.contentSecurityPolicy = false;
   } else {
-    // Default CSP for CAMARA Emergency Demo
+    // Default CSP for CAMARA Emergency Demo.
+    // The basemap hosts are listed explicitly rather than opened to `https:`: the map
+    // may talk to these two keyless vector-tile providers and nothing else. Keep this
+    // list and frontend/src/basemap.ts in step — a provider missing here loads in dev
+    // (where CSP is off) and is silently blocked in production.
+    const basemapHosts = ['https://tiles.openfreemap.org', 'https://tiles.versatiles.org'];
     helmetConfig.contentSecurityPolicy = {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"], // Needed for React in dev
         styleSrc: ["'self'", "'unsafe-inline'"], // Needed for inline styles
-        imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+        connectSrc: ["'self'", ...basemapHosts],
+        // MapLibre GL renders vector tiles in a Web Worker it creates from a blob.
+        workerSrc: ["'self'", 'blob:'],
+        childSrc: ["'self'", 'blob:'], // worker-src fallback for older browsers
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],

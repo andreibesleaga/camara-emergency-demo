@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import {
   MapContainer,
-  TileLayer,
   Polygon as LFPolygon,
   Polyline,
   useMapEvents,
@@ -16,6 +15,7 @@ import { useStore } from '../store';
 import type { DensityPoint } from '../store';
 import { cssVar, useThemeVersion } from '../theme';
 import DrawControl from './DrawControl';
+import BasemapLayer from './BasemapLayer';
 
 const defaultCenter: [number, number] = [44.4268, 26.1025];
 const defaultZoom = 12;
@@ -132,10 +132,7 @@ export default function MapDashboard() {
       zoomControl={false}
       style={{ height: '100%', width: '100%' }}
     >
-      <TileLayer
-        attribution="© OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <BasemapLayer />
 
       {polygonLatLngs.length > 0 && (
         <LFPolygon
